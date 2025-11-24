@@ -1,0 +1,24 @@
+export default function HowItWorksSection() {
+    return (
+        <section id="how-it-works" className="min-h-screen flex items-center justify-center relative z-20 pointer-events-none px-6 sm:px-10 lg:px-20" style={{ scrollMarginTop: '64px' }}>
+            {/* Gradient overlays for depth */}
+            <div className="absolute inset-0 bg-linear-to-r from-black/60 via-transparent to-black/60 pointer-events-none" />
+            <div className="absolute inset-0 bg-linear-to-b from-black/40 via-transparent to-black/40 pointer-events-none" />
+            
+            <div className="relative z-30 text-center text-white max-w-4xl pointer-events-auto">
+                <div className="inline-block mb-6">
+                    <span className="px-4 py-2 bg-purple-500/10 border border-purple-500/30 rounded-full text-purple-400 text-xs sm:text-sm font-semibold tracking-wider uppercase">
+                        The Process
+                    </span>
+                </div>
+                <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+                    How It
+                    <span className="block bg-linear-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                        Works
+                    </span>
+                </h2>
+                <p className="text-gray-300 text-lg">Seamless authentication in three simple steps</p>
+            </div>
+        </section>
+    );
+}
