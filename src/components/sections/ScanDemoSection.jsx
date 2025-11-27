@@ -8,9 +8,9 @@ export default function ScanDemoSection() {
             <div className="absolute inset-0 bg-linear-to-r from-cyan-900/20 via-transparent to-cyan-900/20 pointer-events-none" />
             
             {/* Scan line effect */}
-            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            {/* <div className="absolute inset-0 pointer-events-none overflow-hidden">
                 <div className="absolute w-full h-px bg-linear-to-r from-transparent via-cyan-500/50 to-transparent top-1/2 animate-pulse"></div>
-            </div>
+            </div> */}
 
             <div className="relative z-30 w-full max-w-7xl mx-auto pointer-events-auto">
                 
@@ -22,7 +22,7 @@ export default function ScanDemoSection() {
             </div>
 
             {/* Section Divider */}
-            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-linear-to-r from-transparent via-cyan-500/60 to-transparent"></div>
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-linear-to-r from-transparent via-cyan-500/60 to-transparent"></div>
         </section>
     );
 }

@@ -28,65 +28,55 @@ export default function ICJigModel({ scrollProgress }) {
   const aboutPos = useRef(new THREE.Vector3(0, -4, 0));
 
   // Rotations
-  const heroRot = (Math.PI * 3) / 2; // 270° initial
+  const heroRot = (Math.PI*3); // 270° initial
   const hardwareRot = 0;             // ⭐ front-facing in section 2 (adjust if needed)
+  const frozenRot = Math.PI; // (example — you can change this)
 
   useFrame(() => {
-    if (!groupRef.current) return;
+  if (!groupRef.current) return;
 
-    const t = progressRef.current; // 0 → 1
-    
-    // Only visible in hero and hardware sections (hide after t >= 0.5)
-    if (t >= 0.5) {
-      groupRef.current.visible = false;
-      return;
-    } else {
-      groupRef.current.visible = true;
-    }
+  const t = progressRef.current; // 0 → 1
 
-    if (t < 0.2) {
-      // ⭐ Stage 0: scroll inside FIRST section (0 to 0.2)
-      // Hero low (20%) → Hero higher (~50%)
+  // Hide after t >= 0.5
+  if (t >= 0.5) {
+    groupRef.current.visible = false;
+    return;
+  } else {
+    groupRef.current.visible = true;
+  }
 
-      const localT = t / 0.2; // 0–0.2 → 0–1
+  // CONSTANT angles
+  const startRot = heroRot;      // 270°
+  const endRot = hardwareRot;    // 0°
 
-      groupRef.current.position.lerpVectors(
-        heroLowPos.current,
-        heroHighPos.current,
-        localT
-      );
+  if (t < 0.25) {
+    const rotT = t / 0.25;
+    groupRef.current.rotation.y = THREE.MathUtils.lerp(heroRot, frozenRot, rotT);
+  } else {
+    groupRef.current.rotation.y = frozenRot; // ← stays at this angle
+  }
 
-      // Rotate a bit while in hero
-      const startRot = heroRot;
-      const endRot = heroRot + Math.PI / 2; // small turn
-      groupRef.current.rotation.y = THREE.MathUtils.lerp(startRot, endRot, localT);
 
-    } else if (t < 0.3) {
-      // ⭐ Stage 1: Transition from FIRST → SECOND section (0.2 to 0.3)
-      // Hero higher → hardwarePos (fully visible, right side)
-      // ALL ANIMATION HAPPENS HERE
+  // 🎯 Your same movement (keeping unchanged)
+  if (t < 0.2) {
+    const subT = t / 0.2;
+    groupRef.current.position.lerpVectors(
+      heroLowPos.current,
+      heroHighPos.current,
+      subT
+    );
+  } else if (t < 0.5) {
+    const subT = (t - 0.2) / 0.3;
+    groupRef.current.position.lerpVectors(
+      heroHighPos.current,
+      hardwarePos.current,
+      subT
+    );
+  } else {
+    groupRef.current.position.copy(hardwarePos.current);
+  }
+});
 
-      const localT = (t - 0.2) / 0.1; // 0.2–0.3 → 0–1
-
-      groupRef.current.position.lerpVectors(
-        heroHighPos.current,
-        hardwarePos.current,
-        localT
-      );
-
-      // Rotate from last hero angle to FRONT (hardwareRot)
-      const startRot = heroRot + Math.PI / 2; // where stage 0 ended
-      const endRot = hardwareRot;             // front
-      groupRef.current.rotation.y = THREE.MathUtils.lerp(startRot, endRot, localT);
-
-    } else {
-      // ⭐ Stage 2: SECOND section (0.3 to 0.5)
-      // Model is FIXED at hardware position - NO ANIMATION
-
-      groupRef.current.position.copy(hardwarePos.current);
-      groupRef.current.rotation.y = hardwareRot;
-    }
-  });
 
   return (
     <group ref={groupRef}>
