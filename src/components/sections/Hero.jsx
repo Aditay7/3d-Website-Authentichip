@@ -94,6 +94,9 @@ export default function Hero() {
                     </svg>
                 </div>
             </div>
+
+            {/* Section Divider */}
+            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-linear-to-r from-transparent via-cyan-500/60 to-transparent"></div>
         </section>
     );
 }

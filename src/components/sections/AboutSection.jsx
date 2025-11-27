@@ -20,6 +20,9 @@ export default function AboutSection() {
                 <p className="text-gray-300 text-lg mb-4">Protecting the integrity of electronics supply chains through cutting-edge authentication technology.</p>
                 <p className="text-gray-400">Built by engineers, for engineers who demand certainty.</p>
             </div>
+
+            {/* Section Divider */}
+            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-linear-to-r from-transparent via-green-500/60 to-transparent"></div>
         </section>
     );
 }

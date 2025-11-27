@@ -10,24 +10,21 @@ import Scene3D from './scene/Scene3D';
  */
 export default function HardwareModel3D({ scrollProgress }) {
     const [isHovering, setIsHovering] = useState(false);
-    const [isDragging, setIsDragging] = useState(false);
 
     return (
         <div 
             className="w-full h-full"
             onMouseEnter={() => setIsHovering(true)}
             onMouseLeave={() => setIsHovering(false)}
-            onMouseDown={() => setIsDragging(true)}
-            onMouseUp={() => setIsDragging(false)}
         >
             <Canvas
                 shadows
                 gl={{ alpha: true, antialias: true }}
                 dpr={[1, 2]}
                 onCreated={({ gl }) => {
-                    gl.setClearColor('#000000', 0);
+                    gl.setClearColor('#000000', 0)
                 }}
-                style={{ cursor: isDragging ? 'grabbing' : (isHovering ? 'grab' : 'default') }}
+                style={{ cursor: 'default' }}
             >
                 <Suspense fallback={
                     <mesh>
@@ -41,12 +38,7 @@ export default function HardwareModel3D({ scrollProgress }) {
                 <OrbitControls
                     enableZoom={false}
                     enablePan={false}
-                    enableRotate={true}
-                    minAzimuthAngle={-Math.PI}
-                    maxAzimuthAngle={Math.PI}
-                    minPolarAngle={Math.PI / 2}
-                    maxPolarAngle={Math.PI / 2}
-                    rotateSpeed={0.5}
+                    enableRotate={false}
                 />
             </Canvas>
 

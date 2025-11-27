@@ -19,6 +19,9 @@ export default function HowItWorksSection() {
                 </h2>
                 <p className="text-gray-300 text-lg">Seamless authentication in three simple steps</p>
             </div>
+
+            {/* Section Divider */}
+            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-linear-to-r from-transparent via-purple-500/60 to-transparent"></div>
         </section>
     );
 }
