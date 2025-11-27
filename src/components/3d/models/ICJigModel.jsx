@@ -23,57 +23,65 @@ export default function ICJigModel({ scrollProgress }) {
   // Hardware: final position in section 2 (fully visible, right side, centered vertically)
   const hardwarePos = useRef(new THREE.Vector3(5, -5, 0));
 
-  const scanPos = useRef(new THREE.Vector3(-7, -4, 0));
+  // Scan Demo: center of screen (third section)
+  const scanPos = useRef(new THREE.Vector3(0, -3, 0));
+  
   const howItWorksPos = useRef(new THREE.Vector3(7, -4, 0));
   const aboutPos = useRef(new THREE.Vector3(0, -4, 0));
 
   // Rotations
-  const heroRot = (Math.PI*3); // 270° initial
-  const hardwareRot = 0;             // ⭐ front-facing in section 2 (adjust if needed)
-  const frozenRot = Math.PI; // (example — you can change this)
+  const heroRot = (Math.PI * 3); // 270° initial (or Math.PI * 1.5)
+  const hardwareRot = Math.PI; // 360° (full rotation to front) in section 2
+  const scanRot = Math.PI * 2; // 540° (another 180° rotation) for section 3
 
   useFrame(() => {
   if (!groupRef.current) return;
 
   const t = progressRef.current; // 0 → 1
 
-  // Hide after t >= 0.5
-  if (t >= 0.5) {
+  // Make visible through sections 1, 2, and 3 (hide after section 3)
+  if (t >= 0.75) {
     groupRef.current.visible = false;
     return;
   } else {
     groupRef.current.visible = true;
   }
 
-  // CONSTANT angles
-  const startRot = heroRot;      // 270°
-  const endRot = hardwareRot;    // 0°
-
-  if (t < 0.25) {
-    const rotT = t / 0.25;
-    groupRef.current.rotation.y = THREE.MathUtils.lerp(heroRot, frozenRot, rotT);
-  } else {
-    groupRef.current.rotation.y = frozenRot; // ← stays at this angle
-  }
-
-
-  // 🎯 Your same movement (keeping unchanged)
+  // Position logic
   if (t < 0.2) {
+    // Stage 1: Hero section - move from low to high
     const subT = t / 0.2;
     groupRef.current.position.lerpVectors(
       heroLowPos.current,
       heroHighPos.current,
       subT
     );
-  } else if (t < 0.5) {
-    const subT = (t - 0.2) / 0.3;
+    // First rotation during movement from hero section
+    groupRef.current.rotation.y = THREE.MathUtils.lerp(heroRot, hardwareRot, subT);
+  } else if (t < 0.35) {
+    // Stage 2: Stay in Hardware section
     groupRef.current.position.lerpVectors(
       heroHighPos.current,
       hardwarePos.current,
+      (t - 0.2) / 0.15
+    );
+    // Keep rotation at hardware angle
+    groupRef.current.rotation.y = hardwareRot;
+  } else if (t < 0.55) {
+    // Stage 3: Transition from Hardware (section 2) to Scan Demo (section 3)
+    // This starts earlier in section 2 and ends in section 3
+    const subT = (t - 0.35) / (0.55 - 0.35);
+    groupRef.current.position.lerpVectors(
+      hardwarePos.current,
+      scanPos.current,
       subT
     );
+    // Second rotation during movement to scan section (starts earlier from section 2)
+    groupRef.current.rotation.y = THREE.MathUtils.lerp(hardwareRot, scanRot, subT);
   } else {
-    groupRef.current.position.copy(hardwarePos.current);
+    // Stay at scan position
+    groupRef.current.position.copy(scanPos.current);
+    groupRef.current.rotation.y = scanRot;
   }
 });
 
