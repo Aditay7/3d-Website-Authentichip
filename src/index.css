@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    @apply bg-black text-white antialiased;
+  }
+  
+  * {
+    @apply scroll-smooth;
+  }
+}
+
+@layer utilities {
+  .bg-gradient-radial {
+    background-image: radial-gradient(var(--tw-gradient-stops));
+  }
+}
+
+/* Ensure navbar stays fixed */
+nav {
+  position: fixed !important;
+  top: 0 !important;
+  z-index: 9999 !important;
+}
+
+
+/* Range thumb styling (WebKit + Firefox) */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+}
+
+/* track */
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 8px;
+  border-radius: 999px;
+}
+input[type="range"]::-moz-range-track {
+  height: 8px;
+  border-radius: 999px;
+}
+
+/* thumb (WebKit) */
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #2b6cb0; /* blue */
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.9);
+  border: 2px solid rgba(255,255,255,0.12);
+  margin-top: -5px; /* center */
+  cursor: pointer;
+}
+
+/* thumb (Firefox) */
+input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #2b6cb0;
+  border: 2px solid rgba(255,255,255,0.12);
+  cursor: pointer;
+}
