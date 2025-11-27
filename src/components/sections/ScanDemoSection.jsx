@@ -3,9 +3,9 @@ import DraggableICChip from '../3d/DraggableICChip';
 export default function ScanDemoSection() {
     return (
         <section id="scan" className="min-h-screen flex items-center relative z-20 pointer-events-none px-6 sm:px-10 lg:px-20" style={{ scrollMarginTop: '64px' }}>
-            {/* Gradient overlays */}
-            <div className="absolute inset-0 bg-linear-to-r from-black/30 via-transparent to-black/20 pointer-events-none" />
-            <div className="absolute inset-0 bg-linear-to-b from-black/10 via-transparent to-black/20 pointer-events-none" />
+            {/* Cyan gradient background matching Hardware section */}
+            <div className="absolute inset-0 bg-linear-to-b from-cyan-900/30 via-cyan-800/35 to-cyan-900/25 pointer-events-none" />
+            <div className="absolute inset-0 bg-linear-to-r from-cyan-900/20 via-transparent to-cyan-900/20 pointer-events-none" />
             
             {/* Scan line effect */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden">

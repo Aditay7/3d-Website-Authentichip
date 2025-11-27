@@ -34,7 +34,7 @@ function App() {
       <Navbar />
       
       {/* Fixed 3D model layer */}
-      <div className="fixed inset-0 z-10 pointer-events-none pt-16">
+      <div className="fixed inset-0 z-50 pointer-events-none pt-16">
         <div className="pointer-events-auto w-full h-full">
           <HardwareModel3D scrollProgress={scrollProgress} />
         </div>

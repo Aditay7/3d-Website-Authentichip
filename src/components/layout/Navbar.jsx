@@ -21,7 +21,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 w-full z-50 bg-black/90 backdrop-blur-md border-b border-cyan-500/20">
+    <nav className="fixed top-0 left-0 right-0 w-full z-50 bg-cyan-900/30 backdrop-blur-md border-b border-cyan-500/20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo & Brand */}
@@ -93,7 +93,7 @@ export default function Navbar() {
           mobileMenuOpen ? 'max-h-screen' : 'max-h-0'
         }`}
       >
-        <div className="px-4 pt-2 pb-4 space-y-2 bg-black/95 backdrop-blur-md border-b border-cyan-500/20">
+        <div className="px-4 pt-2 pb-4 space-y-2 bg-cyan-900/30 backdrop-blur-md border-b border-cyan-500/20">
           {navLinks.map((link) => (
             <a
               key={link.label}

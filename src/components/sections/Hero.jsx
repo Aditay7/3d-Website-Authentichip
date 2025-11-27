@@ -10,10 +10,14 @@ export default function Hero() {
 
     return (
         <section id="home" className="relative h-screen w-full bg-transparent overflow-hidden pt-16 pointer-events-none">
+            {/* Cyan gradient background matching Hardware section */}
+            <div className="absolute inset-0 bg-linear-to-b from-cyan-900/30 via-cyan-800/35 to-cyan-900/25 pointer-events-none"></div>
+            <div className="absolute inset-0 bg-linear-to-r from-cyan-900/20 via-transparent to-cyan-900/20 pointer-events-none"></div>
+            
             {/* Background effects */}
             <div className="absolute inset-0 pointer-events-none">
                 {/* Radial glow */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-radial from-cyan-500/20 via-blue-500/10 to-transparent rounded-full blur-3xl"></div>
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-radial from-cyan-500/25 via-cyan-600/12 to-transparent rounded-full blur-3xl"></div>
 
                 {/* Scan rings */}
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
@@ -96,7 +100,7 @@ export default function Hero() {
             </div>
 
             {/* Section Divider */}
-            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-linear-to-r from-transparent via-cyan-500/60 to-transparent"></div>
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-linear-to-r from-transparent via-cyan-500/60 to-transparent"></div>
         </section>
     );
 }
