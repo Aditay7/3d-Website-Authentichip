@@ -1,10 +1,13 @@
 import { useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const navLinks = [
-    { label: 'Home', href: '#home' },
+    { label: 'Home', href: '/' },
     { label: 'Hardware', href: '#hardware' },
     { label: 'Scan Demo', href: '#scan' },
     { label: 'How It Works', href: '#how-it-works' },
@@ -13,10 +16,22 @@ export default function Navbar() {
 
   const handleNavClick = (e, href) => {
     e.preventDefault();
-    const element = document.querySelector(href);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      setMobileMenuOpen(false);
+    setMobileMenuOpen(false);
+
+    if (href.startsWith('#')) {
+      if (location.pathname !== '/') {
+        navigate('/');
+        setTimeout(() => {
+          const element = document.querySelector(href);
+          if (element) element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+      } else {
+        const element = document.querySelector(href);
+        if (element) element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    } else {
+      navigate(href);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -25,14 +40,18 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo & Brand */}
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-linear-to-br from-cyan-400 to-blue-600 rounded flex items-center justify-center font-bold text-sm">
+          <Link 
+            to="/" 
+            className="flex items-center space-x-3 group"
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          >
+            <div className="w-8 h-8 bg-linear-to-br from-cyan-400 to-blue-600 rounded flex items-center justify-center font-bold text-sm group-hover:shadow-[0_0_15px_rgba(34,211,238,0.5)] transition-all duration-300">
               AC
             </div>
-            <span className="text-white font-semibold text-lg tracking-tight">
+            <span className="text-white font-semibold text-lg tracking-tight group-hover:text-cyan-400 transition-colors duration-300">
               Authentichip
             </span>
-          </div>
+          </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
@@ -49,11 +68,20 @@ export default function Navbar() {
             ))}
           </div>
 
-          {/* CTA Button */}
-          <div className="hidden md:block">
-            <button className="px-6 py-2 bg-cyan-500 hover:bg-cyan-400 text-black font-semibold rounded-full text-sm transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(34,211,238,0.6)]">
-              Start Scan
-            </button>
+          {/* CTA Buttons */}
+          <div className="hidden md:flex items-center space-x-4">
+            <Link 
+              to="/login"
+              className="text-gray-300 hover:text-white text-sm font-medium transition-colors duration-200"
+            >
+              Login
+            </Link>
+            <Link 
+              to="/signup"
+              className="px-6 py-2 bg-cyan-500 hover:bg-cyan-400 text-black font-semibold rounded-full text-sm transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(34,211,238,0.6)]"
+            >
+              Sign Up
+            </Link>
           </div>
 
           {/* Mobile Menu Button */}
@@ -104,9 +132,22 @@ export default function Navbar() {
               {link.label}
             </a>
           ))}
-          <button className="w-full mt-4 px-6 py-2 bg-cyan-500 hover:bg-cyan-400 text-black font-semibold rounded-full text-sm transition-all duration-300">
-            Start Scan
-          </button>
+          <div className="flex flex-col space-y-3 mt-4">
+            <Link 
+              to="/login"
+              className="w-full text-center py-2 text-gray-300 hover:text-white text-sm font-medium transition-colors duration-200"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Login
+            </Link>
+            <Link 
+              to="/signup"
+              className="w-full px-6 py-2 bg-cyan-500 hover:bg-cyan-400 text-black font-semibold rounded-full text-sm transition-all duration-300 text-center"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Sign Up
+            </Link>
+          </div>
         </div>
       </div>
     </nav>
