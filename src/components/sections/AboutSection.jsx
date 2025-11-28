@@ -1,24 +1,181 @@
+import { useState, useEffect } from 'react';
+
 export default function AboutSection() {
+    const [activeFeature, setActiveFeature] = useState(0);
+    const [isVisible, setIsVisible] = useState(false);
+
+    const features = [
+        {
+            title: "Modular Architecture",
+            description: "Camera-enabled capture, edge inference, backend ML, and immutable audit trails",
+            icon: "⚡",
+            details: ["Edge Computing Layer", "Backend ML Services", "Cryptographic Passport", "Audit Database"]
+        },
+        {
+            title: "Role-Based Access",
+            description: "Admin, Worker, and User roles with tailored interfaces and permissions",
+            icon: "👥",
+            details: ["Admin Dashboard", "Worker Interface", "Customer Portal", "Device Manager"]
+        },
+        {
+            title: "AI-Powered Detection",
+            description: "Advanced OCR, anomaly detection, and GAN-based authenticity scoring",
+            icon: "🤖",
+            details: ["OCR Processing", "Anomaly Detection", "GAN Scoring", "Confidence Analysis"]
+        },
+        {
+            title: "Immutable Provenance",
+            description: "Cryptographic component passports with blockchain-verified authenticity",
+            icon: "🔐",
+            details: ["Hash Generation", "Ledger Storage", "Verification API", "Audit Trails"]
+        }
+    ];
+
+    useEffect(() => {
+        setIsVisible(true);
+        const interval = setInterval(() => {
+            setActiveFeature((prev) => (prev + 1) % features.length);
+        }, 4000);
+        return () => clearInterval(interval);
+    }, []);
+
     return (
-        <section id="about" className="min-h-screen flex items-center justify-center relative z-20 pointer-events-none px-6 sm:px-10 lg:px-20" style={{ scrollMarginTop: '64px' }}>
-            {/* Cyan gradient background matching Hardware section */}
+        <section id="about" className="min-h-screen py-12 relative z-20 pointer-events-none px-4 sm:px-6 lg:px-12" style={{ scrollMarginTop: '64px' }}>
+            {/* Enhanced gradient background */}
             <div className="absolute inset-0 bg-linear-to-b from-cyan-900/30 via-cyan-800/35 to-cyan-900/25 pointer-events-none" />
             <div className="absolute inset-0 bg-linear-to-r from-cyan-900/20 via-transparent to-cyan-900/20 pointer-events-none" />
             
-            <div className="relative z-30 text-center text-white max-w-4xl pointer-events-auto">
-                <div className="inline-block mb-6">
-                    <span className="px-4 py-2 bg-cyan-500/10 border border-cyan-500/30 rounded-full text-cyan-400 text-xs sm:text-sm font-semibold tracking-wider uppercase">
-                        Our Mission
-                    </span>
+            {/* Reduced animated background particles */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                {[...Array(12)].map((_, i) => (
+                    <div
+                        key={i}
+                        className="absolute w-px h-px bg-cyan-400/15 rounded-full animate-pulse"
+                        style={{
+                            left: `${Math.random() * 100}%`,
+                            top: `${Math.random() * 100}%`,
+                            animationDelay: `${Math.random() * 4}s`,
+                            animationDuration: `${3 + Math.random() * 2}s`
+                        }}
+                    />
+                ))}
+            </div>
+            
+            <div className="relative z-30 max-w-6xl mx-auto pointer-events-auto">
+                {/* Compact Header */}
+                <div className="text-center mb-12">
+                    <div className="inline-block mb-4">
+                        <span className="px-3 py-1.5 bg-cyan-500/10 border border-cyan-500/30 rounded-full text-cyan-400 text-xs font-semibold tracking-wider uppercase">
+                            Our Technology
+                        </span>
+                    </div>
+                    <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 leading-tight text-white">
+                        About
+                        <span className="block bg-linear-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+                            AuthentiChip
+                        </span>
+                    </h2>
+                    <p className="text-gray-300 text-base sm:text-lg max-w-2xl mx-auto mb-3">
+                        Protecting electronics supply chain integrity through cutting-edge AI authentication technology
+                    </p>
+                    <p className="text-gray-400 text-sm max-w-xl mx-auto">
+                        Built by engineers, for engineers who demand certainty in component authenticity
+                    </p>
                 </div>
-                <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-                    About
-                    <span className="block bg-linear-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-                        Authentichip
-                    </span>
-                </h2>
-                <p className="text-gray-300 text-lg mb-4">Protecting the integrity of electronics supply chains through cutting-edge authentication technology.</p>
-                <p className="text-gray-400">Built by engineers, for engineers who demand certainty.</p>
+
+                <div className="grid lg:grid-cols-3 gap-8 mb-10">
+                    {/* Left Column - Mission & Vision */}
+                    <div className="lg:col-span-1 space-y-6">
+                        <div className="bg-linear-to-br from-gray-900/50 to-cyan-900/20 p-6 rounded-2xl border border-cyan-500/20 backdrop-blur-sm">
+                            <h3 className="text-xl font-bold text-white mb-3 flex items-center gap-2">
+                                <span className="text-cyan-400">🎯</span>
+                                Our Mission
+                            </h3>
+                            <p className="text-gray-300 text-sm leading-relaxed">
+                                To eliminate counterfeit components from electronics supply chains through advanced AI-powered authentication.
+                            </p>
+                        </div>
+                        
+                        <div className="bg-linear-to-br from-blue-900/30 to-purple-900/20 p-6 rounded-2xl border border-blue-500/20 backdrop-blur-sm">
+                            <h3 className="text-xl font-bold text-white mb-3 flex items-center gap-2">
+                                <span className="text-blue-400">🚀</span>
+                                Our Vision
+                            </h3>
+                            <p className="text-gray-300 text-sm leading-relaxed">
+                                Creating a world where every electronic component has verifiable authenticity and complete supply chain transparency.
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Right Column - Features Grid */}
+                    <div className="lg:col-span-2">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {features.map((feature, index) => (
+                                <div
+                                    key={index}
+                                    className={`relative group cursor-pointer transition-all duration-300 ${
+                                        activeFeature === index ? 'scale-102' : 'hover:scale-101'
+                                    }`}
+                                    onClick={() => setActiveFeature(index)}
+                                >
+                                    <div className={`p-4 rounded-xl border transition-all duration-300 ${
+                                        activeFeature === index 
+                                            ? 'bg-cyan-500/10 border-cyan-400/50 shadow-md shadow-cyan-500/20' 
+                                            : 'bg-gray-900/30 border-gray-700/30 hover:border-cyan-500/30'
+                                    }`}>
+                                        <div className="flex items-start gap-3 mb-3">
+                                            <div className={`text-2xl transition-all duration-300 ${
+                                                activeFeature === index ? 'scale-105' : ''
+                                            }`}>
+                                                {feature.icon}
+                                            </div>
+                                            <div className="flex-1">
+                                                <h3 className="text-lg font-bold text-white mb-1">{feature.title}</h3>
+                                                <p className="text-gray-300 text-sm">{feature.description}</p>
+                                            </div>
+                                        </div>
+                                        
+                                        {/* Compact Feature details */}
+                                        <div className={`grid grid-cols-2 gap-1.5 transition-all duration-300 ${
+                                            activeFeature === index ? 'opacity-100 max-h-32' : 'opacity-60 max-h-16'
+                                        } overflow-hidden`}>
+                                            {feature.details.map((detail, i) => (
+                                                <div key={i} className="text-xs text-cyan-400 bg-cyan-500/5 px-1.5 py-0.5 rounded border border-cyan-500/20">
+                                                    {detail}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Subtle active indicator */}
+                                    {activeFeature === index && (
+                                        <div className="absolute -inset-0.5 bg-linear-to-r from-cyan-400/15 to-blue-400/15 rounded-xl blur-sm -z-10" />
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Compact Stats Row */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="text-center p-4 bg-gray-900/30 rounded-xl border border-gray-700/30">
+                        <div className="text-2xl font-bold text-cyan-400 mb-1">99.9%</div>
+                        <div className="text-xs text-gray-400">Accuracy Rate</div>
+                    </div>
+                    <div className="text-center p-4 bg-gray-900/30 rounded-xl border border-gray-700/30">
+                        <div className="text-2xl font-bold text-blue-400 mb-1">&lt;100ms</div>
+                        <div className="text-xs text-gray-400">Edge Processing</div>
+                    </div>
+                    <div className="text-center p-4 bg-gray-900/30 rounded-xl border border-gray-700/30">
+                        <div className="text-2xl font-bold text-purple-400 mb-1">24/7</div>
+                        <div className="text-xs text-gray-400">Monitoring</div>
+                    </div>
+                    <div className="text-center p-4 bg-gray-900/30 rounded-xl border border-gray-700/30">
+                        <div className="text-2xl font-bold text-green-400 mb-1">Immutable</div>
+                        <div className="text-xs text-gray-400">Audit Trail</div>
+                    </div>
+                </div>
             </div>
 
             {/* Section Divider */}

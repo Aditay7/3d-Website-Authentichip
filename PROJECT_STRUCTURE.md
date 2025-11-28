@@ -24,7 +24,6 @@ src/
 │       │   └── Scene3D.jsx        # Camera, lights, environment
 │       └── models/                 # Individual 3D models
 │           ├── ICJigModel.jsx     # wcJIG inspection rig
-│           ├── ICChipModel.jsx    # Draggable IC chip
 │           └── index.js
 │
 ├── assets/              # Static assets
@@ -77,12 +76,6 @@ public/
   - Manual rotation support
   - Breathing animation effect
 
-- **models/ICChipModel.jsx**: Draggable IC Chip
-  - Appears at scrollProgress > 0.5
-  - Drag-and-drop functionality
-  - Hover animations
-  - Independent lighting
-
 ## 🔄 Data Flow
 
 ```
@@ -92,8 +85,7 @@ App.jsx
   ├── Fixed 3D Layer (z-10)
   │   └── HardwareModel3D
   │       └── Scene3D
-  │           ├── ICJigModel (animated by scroll)
-  │           └── ICChipModel (draggable)
+  │           └── ICJigModel (animated by scroll)
   │
   └── Content Layers (z-20+)
       ├── Navbar
@@ -115,7 +107,7 @@ import { HardwareModel3D } from './components/3d';
 
 ### Direct Imports (when needed)
 ```javascript
-import { ICJigModel, ICChipModel } from './components/3d/models';
+import { ICJigModel } from './components/3d/models';
 ```
 
 ## 🎨 Styling Architecture
