@@ -8,7 +8,7 @@ import ScanChipScene3D from './scene/ScanChipScene3D';
  */
 export default function DraggableScanChip() {
   // starting position on the page
-  const [position, setPosition] = useState({ x: 120, y: 120 });
+  const [position, setPosition] = useState({ x: 1200, y: 500 });
   const [dragging, setDragging] = useState(false);
   const offsetRef = useRef({ x: 0, y: 0 });
 
@@ -53,9 +53,9 @@ export default function DraggableScanChip() {
         height: 180,
         cursor: dragging ? 'grabbing' : 'grab',
         borderRadius: '12px',
-        overflow: 'hidden',
-        boxShadow: '0 10px 25px rgba(0,0,0,0.35)',
-        background: '#020617',
+        // overflow: 'hidden', // Removed to avoid clipping if model extends slightly
+        // boxShadow: '0 10px 25px rgba(0,0,0,0.35)', // Removed as per user request
+        background: 'transparent',
         zIndex: 1000, // stay above page content
       }}
     >

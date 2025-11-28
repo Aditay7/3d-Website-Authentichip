@@ -25,8 +25,9 @@ export default function ScanChipScene3D() {
       <OrbitControls
         enableZoom={false}
         enablePan={false}
-        autoRotate
-        autoRotateSpeed={1.5}
+        autoRotate={true}
+        autoRotateSpeed={0.5}
+        enableRotate={false}
       />
 
       <Environment preset="studio" />
