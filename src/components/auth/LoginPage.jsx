@@ -18,18 +18,13 @@ export default function LoginPage() {
 		<div className="min-h-screen bg-black overflow-x-hidden relative font-sans">
 			<Navbar />
 			
-			{/* 3D Background Layer */}
-			<div className="fixed inset-0 z-0 pointer-events-none">
-				<div className="w-full h-full opacity-60">
-					<HardwareModel3D scrollProgress={0.2} />
-				</div>
-			</div>
+
 
 			{/* Hero Background Styles */}
 			<div className="fixed inset-0 pointer-events-none z-0">
 				{/* Cyan gradient background */}
-				<div className="absolute inset-0 bg-linear-to-b from-cyan-900/30 via-cyan-800/35 to-cyan-900/25"></div>
-				<div className="absolute inset-0 bg-linear-to-r from-cyan-900/20 via-transparent to-cyan-900/20"></div>
+				<div className="absolute inset-0 bg-gradient-to-b from-cyan-900/30 via-cyan-800/35 to-cyan-900/25"></div>
+				<div className="absolute inset-0 bg-gradient-to-r from-cyan-900/20 via-transparent to-cyan-900/20"></div>
 				
 				{/* Background effects */}
 				<div className="absolute inset-0">
@@ -130,12 +125,12 @@ export default function LoginPage() {
 							/>
 						</div>
 
-						<button
-							type="submit"
-							className="w-full py-4 px-4 bg-linear-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold rounded-xl shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:shadow-[0_0_30px_rgba(34,211,238,0.5)] hover:scale-[1.02] transition-all duration-300"
-						>
-							Sign in
-						</button>
+									<button
+					type="submit"
+					className="w-full py-4 px-4 bg-cyan-400 hover:bg-cyan-300 text-black font-bold rounded-xl transition-all duration-300 hover:scale-[1.02]"
+				>
+					Sign in
+				</button>
 					</form>
 
 					<div className="mt-8 text-center">

@@ -12,6 +12,8 @@ export default function Navbar() {
     { label: 'Scan Demo', href: '#scan' },
     { label: 'How It Works', href: '#how-it-works' },
     { label: 'About', href: '#about' },
+    { label: 'Worker', href: '/worker' },
+    { label: 'Admin', href: '/admin' },
   ];
 
   const handleNavClick = (e, href) => {
@@ -45,7 +47,7 @@ export default function Navbar() {
             className="flex items-center space-x-3 group"
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           >
-            <div className="w-8 h-8 bg-linear-to-br from-cyan-400 to-blue-600 rounded flex items-center justify-center font-bold text-sm group-hover:shadow-[0_0_15px_rgba(34,211,238,0.5)] transition-all duration-300">
+            <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-600 rounded flex items-center justify-center font-bold text-sm group-hover:shadow-[0_0_15px_rgba(34,211,238,0.5)] transition-all duration-300">
               AC
             </div>
             <span className="text-white font-semibold text-lg tracking-tight group-hover:text-cyan-400 transition-colors duration-300">
@@ -72,13 +74,13 @@ export default function Navbar() {
           <div className="hidden md:flex items-center space-x-4">
             <Link 
               to="/login"
-              className="text-gray-300 hover:text-white text-sm font-medium transition-colors duration-200"
+              className="px-6 py-2 border-2 border-cyan-400 text-cyan-400 hover:bg-cyan-400/10 font-semibold rounded-full text-sm transition-all duration-300"
             >
               Login
             </Link>
             <Link 
               to="/signup"
-              className="px-6 py-2 bg-cyan-500 hover:bg-cyan-400 text-black font-semibold rounded-full text-sm transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(34,211,238,0.6)]"
+              className="px-6 py-2 bg-cyan-400 hover:bg-cyan-300 text-white font-semibold rounded-full text-sm transition-all duration-300 shadow-lg hover:shadow-xl"
             >
               Sign Up
             </Link>
@@ -135,14 +137,14 @@ export default function Navbar() {
           <div className="flex flex-col space-y-3 mt-4">
             <Link 
               to="/login"
-              className="w-full text-center py-2 text-gray-300 hover:text-white text-sm font-medium transition-colors duration-200"
+              className="w-full text-center py-2 border-2 border-cyan-400 text-cyan-400 hover:bg-cyan-400/10 font-semibold rounded-full text-sm transition-all duration-300"
               onClick={() => setMobileMenuOpen(false)}
             >
               Login
             </Link>
             <Link 
               to="/signup"
-              className="w-full px-6 py-2 bg-cyan-500 hover:bg-cyan-400 text-black font-semibold rounded-full text-sm transition-all duration-300 text-center"
+              className="w-full px-6 py-2 bg-cyan-400 hover:bg-cyan-300 text-white font-semibold rounded-full text-sm transition-all duration-300 text-center shadow-lg"
               onClick={() => setMobileMenuOpen(false)}
             >
               Sign Up

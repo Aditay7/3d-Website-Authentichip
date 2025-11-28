@@ -98,3 +98,25 @@ input[type="range"]::-moz-range-thumb {
     }
   }
 }
+/* Auth button persistent gradient - High specificity to prevent conflicts */
+button.auth-button-gradient,
+.auth-button-gradient,
+button.auth-button-gradient[type="submit"],
+form button.auth-button-gradient,
+div button.auth-button-gradient {
+  background: linear-gradient(135deg, #22d3ee 0%, #60a5fa 50%, #a78bfa 100%) !important;
+  background-color: transparent !important;
+  box-shadow: 0 0 25px rgba(34, 211, 238, 0.5), 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+}
+
+button.auth-button-gradient:hover,
+.auth-button-gradient:hover,
+button.auth-button-gradient[type="submit"]:hover,
+form button.auth-button-gradient:hover,
+div button.auth-button-gradient:hover {
+  background: linear-gradient(135deg, #22d3ee 0%, #60a5fa 50%, #a78bfa 100%) !important;
+  background-color: transparent !important;
+  box-shadow: 0 0 35px rgba(34, 211, 238, 0.7), 0 6px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+
