@@ -1,5 +1,5 @@
 import { PerspectiveCamera, Environment } from '@react-three/drei';
-import { ICJigModel, ICChipModel } from '../models';
+import { ICJigModel } from '../models';
 
 /**
  * Main 3D Scene containing all models, lighting, and camera
@@ -42,9 +42,6 @@ export default function Scene3D({ scrollProgress, isHovering }) {
 
             {/* wcJIG Inspection Rig Model */}
             <ICJigModel scrollProgress={scrollProgress} />
-
-            {/* IC Chip Model (draggable, appears in 3rd section) */}
-            <ICChipModel scrollProgress={scrollProgress} />
 
             {/* Environment for reflections */}
             <Environment preset="night" />

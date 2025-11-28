@@ -3,92 +3,99 @@ import { useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 
-export default function ICJigModel({ scrollProgress }) {
+export default function ICJigModel({ scrollProgress, children }) {
   const groupRef = useRef();
   const { scene } = useGLTF('/models/wcJIG.glb');
 
-  // Store scroll in a ref so useFrame sees latest value
   const progressRef = useRef(0);
   useEffect(() => {
     progressRef.current = scrollProgress;
   }, [scrollProgress]);
 
-  // Positions
+  // 📌 Scroll Ranges (adjusted to reach center of scan demo section)
+  const SCAN_START = 0.45;      // Model reaches center of scan demo section
+  const SCAN_PIN_END = 0.55;    // Model stays pinned in center briefly
+  const SCAN_SCROLL_END = 0.85; // Model scrolls up with section and disappears
 
-  // Hero: low (only ~20% visible)
+  // 📌 Positions
   const heroLowPos = useRef(new THREE.Vector3(10, -12, 0));
-  // Hero: higher (~50–60% visible)
   const heroHighPos = useRef(new THREE.Vector3(10, -4, 0));
-
-  // Hardware: final position in section 2 (fully visible, right side, centered vertically)
   const hardwarePos = useRef(new THREE.Vector3(5, -5, 0));
+  const scanPos = useRef(new THREE.Vector3(2, -3.5, 0));
 
-  // Scan Demo: center of screen (third section)
-  const scanPos = useRef(new THREE.Vector3(0, -3, 0));
-  
-  const howItWorksPos = useRef(new THREE.Vector3(7, -4, 0));
-  const aboutPos = useRef(new THREE.Vector3(0, -4, 0));
-
-  // Rotations
-  const heroRot = (Math.PI * 3); // 270° initial (or Math.PI * 1.5)
-  const hardwareRot = Math.PI; // 360° (full rotation to front) in section 2
-  const scanRot = Math.PI * 2; // 540° (another 180° rotation) for section 3
+  // 📌 Rotations
+  const heroRot = Math.PI * 3;
+  const hardwareRot = Math.PI;
+  const scanRot = Math.PI * 2;
 
   useFrame(() => {
-  if (!groupRef.current) return;
+    if (!groupRef.current) return;
 
-  const t = progressRef.current; // 0 → 1
+    const t = progressRef.current;
 
-  // Make visible through sections 1, 2, and 3 (hide after section 3)
-  if (t >= 0.75) {
-    groupRef.current.visible = false;
-    return;
-  } else {
-    groupRef.current.visible = true;
-  }
+    // 🔹 Hide completely after Scan section is gone
+    if (t >= SCAN_SCROLL_END) {
+      groupRef.current.visible = false;
+      return;
+    }
 
-  // Position logic
-  if (t < 0.2) {
-    // Stage 1: Hero section - move from low to high
-    const subT = t / 0.2;
-    groupRef.current.position.lerpVectors(
-      heroLowPos.current,
-      heroHighPos.current,
-      subT
-    );
-    // First rotation during movement from hero section
-    groupRef.current.rotation.y = THREE.MathUtils.lerp(heroRot, hardwareRot, subT);
-  } else if (t < 0.35) {
-    // Stage 2: Stay in Hardware section
-    groupRef.current.position.lerpVectors(
-      heroHighPos.current,
-      hardwarePos.current,
-      (t - 0.2) / 0.15
-    );
-    // Keep rotation at hardware angle
-    groupRef.current.rotation.y = hardwareRot;
-  } else if (t < 0.55) {
-    // Stage 3: Transition from Hardware (section 2) to Scan Demo (section 3)
-    // This starts earlier in section 2 and ends in section 3
-    const subT = (t - 0.35) / (0.55 - 0.35);
-    groupRef.current.position.lerpVectors(
-      hardwarePos.current,
-      scanPos.current,
-      subT
-    );
-    // Second rotation during movement to scan section (starts earlier from section 2)
-    groupRef.current.rotation.y = THREE.MathUtils.lerp(hardwareRot, scanRot, subT);
-  } else {
-    // Stay at scan position
-    groupRef.current.position.copy(scanPos.current);
-    groupRef.current.rotation.y = scanRot;
-  }
-});
+    groupRef.current.visible = true; // Default visible
 
+    // 🔹 SCAN DEMO FIXED PHASE
+    if (t >= SCAN_START && t < SCAN_PIN_END) {
+      groupRef.current.position.copy(scanPos.current);
+      groupRef.current.rotation.y = scanRot;
+      return;
+    }
+
+    // 🔹 SCAN DEMO SCROLL-UP PHASE
+    if (t >= SCAN_PIN_END && t < SCAN_SCROLL_END) {
+      const scanT = (t - SCAN_PIN_END) / (SCAN_SCROLL_END - SCAN_PIN_END);
+      const maxScrollOffset = 20; // scroll ke sath kitna upar
+
+      const adjustedScanPos = new THREE.Vector3(
+        scanPos.current.x,
+        scanPos.current.y + scanT * maxScrollOffset,
+        scanPos.current.z
+      );
+
+      groupRef.current.position.copy(adjustedScanPos);
+      groupRef.current.rotation.y = scanRot;
+      return;
+    }
+
+    // 🔹 HERO + HARDWARE Transition
+    if (t < 0.2) {
+      const subT = t / 0.2;
+      groupRef.current.position.lerpVectors(
+        heroLowPos.current,
+        heroHighPos.current,
+        subT
+      );
+      groupRef.current.rotation.y = THREE.MathUtils.lerp(heroRot, hardwareRot, subT);
+    } else if (t < 0.35) {
+      const subT = (t - 0.2) / 0.15;
+      groupRef.current.position.lerpVectors(
+        heroHighPos.current,
+        hardwarePos.current,
+        subT
+      );
+      groupRef.current.rotation.y = hardwareRot;
+    } else if (t < SCAN_START) {
+      const subT = (t - 0.35) / (SCAN_START - 0.35);
+      groupRef.current.position.lerpVectors(
+        hardwarePos.current,
+        scanPos.current,
+        subT
+      );
+      groupRef.current.rotation.y = THREE.MathUtils.lerp(hardwareRot, scanRot, subT);
+    }
+  });
 
   return (
     <group ref={groupRef}>
       <primitive object={scene} scale={0.22} />
+      {children}
     </group>
   );
 }
