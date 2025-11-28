@@ -1,68 +1,122 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+@import "tailwindcss";
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@layer base {
+  body {
+    @apply bg-black text-white antialiased;
+  }
+  
+  * {
+    @apply scroll-smooth;
+  }
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+@layer utilities {
+  .bg-gradient-radial {
+    background-image: radial-gradient(var(--tw-gradient-stops));
+  }
 }
 
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+/* Ensure navbar stays fixed */
+nav {
+  position: fixed !important;
+  top: 0 !important;
+  z-index: 9999 !important;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+
+/* Range thumb styling (WebKit + Firefox) */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
+/* track */
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 8px;
+  border-radius: 999px;
+}
+input[type="range"]::-moz-range-track {
+  height: 8px;
+  border-radius: 999px;
+}
+
+/* thumb (WebKit) */
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #2b6cb0; /* blue */
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.9);
+  border: 2px solid rgba(255,255,255,0.12);
+  margin-top: -5px; /* center */
   cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
+/* thumb (Firefox) */
+input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #2b6cb0;
+  border: 2px solid rgba(255,255,255,0.12);
+  cursor: pointer;
+}
+
+@layer utilities {
+  .text-3d {
+    text-shadow: 
+      0 1px 0 #ccc,
+      0 2px 0 #c9c9c9,
+      0 3px 0 #bbb,
+      0 4px 0 #b9b9b9,
+      0 5px 0 #aaa,
+      0 6px 1px rgba(0,0,0,.1),
+      0 0 5px rgba(0,0,0,.1),
+      0 1px 3px rgba(0,0,0,.3),
+      0 3px 5px rgba(0,0,0,.2),
+      0 5px 10px rgba(0,0,0,.25),
+      0 10px 10px rgba(0,0,0,.2),
+      0 20px 20px rgba(0,0,0,.15);
   }
-  a:hover {
-    color: #747bff;
+  
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
   }
-  button {
-    background-color: #f9f9f9;
+  
+  @keyframes float {
+    0% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+    100% {
+      transform: translateY(0px);
+    }
   }
 }
+/* Auth button persistent gradient - High specificity to prevent conflicts */
+button.auth-button-gradient,
+.auth-button-gradient,
+button.auth-button-gradient[type="submit"],
+form button.auth-button-gradient,
+div button.auth-button-gradient {
+  background: linear-gradient(135deg, #22d3ee 0%, #60a5fa 50%, #a78bfa 100%) !important;
+  background-color: transparent !important;
+  box-shadow: 0 0 25px rgba(34, 211, 238, 0.5), 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+}
+
+button.auth-button-gradient:hover,
+.auth-button-gradient:hover,
+button.auth-button-gradient[type="submit"]:hover,
+form button.auth-button-gradient:hover,
+div button.auth-button-gradient:hover {
+  background: linear-gradient(135deg, #22d3ee 0%, #60a5fa 50%, #a78bfa 100%) !important;
+  background-color: transparent !important;
+  box-shadow: 0 0 35px rgba(34, 211, 238, 0.7), 0 6px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+
