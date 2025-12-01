@@ -4,8 +4,12 @@ import { Card, Row, Col, Statistic, Progress, List, Tag, Modal } from 'antd';
 import { ClockCircleOutlined, CheckCircleOutlined, WarningOutlined, TrophyOutlined } from '@ant-design/icons';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { scanResults, performanceHistory } from '../data/mockData';
+import { useRoleProtection } from '../utils/roleProtection';
 
 const WorkerPage = () => {
+  // Protect this page - only workers can access
+  useRoleProtection('worker');
+
   const [selectedScan, setSelectedScan] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
@@ -33,7 +37,7 @@ const WorkerPage = () => {
         {/* Cyan gradient background */}
         <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(22, 78, 99, 0.3) 0%, rgba(21, 94, 117, 0.35) 50%, rgba(22, 78, 99, 0.25) 100%)' }}></div>
         <div className="absolute inset-0" style={{ background: 'linear-gradient(to right, rgba(22, 78, 99, 0.2) 0%, transparent 50%, rgba(22, 78, 99, 0.2) 100%)' }}></div>
-        
+
         {/* Background effects */}
         <div className="absolute inset-0">
           {/* Radial glow */}
@@ -50,15 +54,15 @@ const WorkerPage = () => {
         <div className="max-w-7xl mx-auto space-y-6">
           {/* Header with 3D effect */}
           <div className="mb-8">
-            <h1 className="text-5xl font-black mb-2" 
-                style={{ 
-                  background: 'linear-gradient(135deg, #22d3ee 0%, #60a5fa 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                  textShadow: '0 4px 8px rgba(34, 211, 238, 0.3), 0 0 20px rgba(34, 211, 238, 0.2)',
-                  transform: 'perspective(500px) rotateX(5deg)'
-                }}>
+            <h1 className="text-5xl font-black mb-2"
+              style={{
+                background: 'linear-gradient(135deg, #22d3ee 0%, #60a5fa 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                textShadow: '0 4px 8px rgba(34, 211, 238, 0.3), 0 0 20px rgba(34, 211, 238, 0.2)',
+                transform: 'perspective(500px) rotateX(5deg)'
+              }}>
               Worker Dashboard
             </h1>
             <p className="text-gray-400 text-lg">Real-time scan analytics and performance metrics</p>
@@ -67,14 +71,14 @@ const WorkerPage = () => {
           {/* Stats Grid with 3D Cards */}
           <Row gutter={[16, 16]}>
             <Col xs={24} sm={12} lg={6}>
-              <Card 
+              <Card
                 className="!bg-white/5 !border-white/10 backdrop-blur-md hover:!bg-white/10 transition-all duration-300"
-                style={{ 
+                style={{
                   transform: 'perspective(1000px) rotateY(-2deg)',
                   boxShadow: '0 8px 32px rgba(34, 211, 238, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
                 }}
               >
-                <Statistic 
+                <Statistic
                   title={<span className="text-gray-400">Total Scans Today</span>}
                   value={recentScans.length}
                   valueStyle={{ color: '#22d3ee', fontSize: '2rem', fontWeight: 'bold' }}
@@ -83,14 +87,14 @@ const WorkerPage = () => {
               </Card>
             </Col>
             <Col xs={24} sm={12} lg={6}>
-              <Card 
+              <Card
                 className="!bg-white/5 !border-white/10 backdrop-blur-md hover:!bg-white/10 transition-all duration-300"
-                style={{ 
+                style={{
                   transform: 'perspective(1000px) rotateY(-1deg)',
                   boxShadow: '0 8px 32px rgba(34, 211, 238, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
                 }}
               >
-                <Statistic 
+                <Statistic
                   title={<span className="text-gray-400">Pass Rate</span>}
                   value={((passCount / recentScans.length) * 100).toFixed(1)}
                   suffix="%"
@@ -100,14 +104,14 @@ const WorkerPage = () => {
               </Card>
             </Col>
             <Col xs={24} sm={12} lg={6}>
-              <Card 
+              <Card
                 className="!bg-white/5 !border-white/10 backdrop-blur-md hover:!bg-white/10 transition-all duration-300"
-                style={{ 
+                style={{
                   transform: 'perspective(1000px) rotateY(1deg)',
                   boxShadow: '0 8px 32px rgba(34, 211, 238, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
                 }}
               >
-                <Statistic 
+                <Statistic
                   title={<span className="text-gray-400">Avg Confidence</span>}
                   value={avgConfidence}
                   suffix="%"
@@ -117,14 +121,14 @@ const WorkerPage = () => {
               </Card>
             </Col>
             <Col xs={24} sm={12} lg={6}>
-              <Card 
+              <Card
                 className="!bg-white/5 !border-white/10 backdrop-blur-md hover:!bg-white/10 transition-all duration-300"
-                style={{ 
+                style={{
                   transform: 'perspective(1000px) rotateY(2deg)',
                   boxShadow: '0 8px 32px rgba(34, 211, 238, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
                 }}
               >
-                <Statistic 
+                <Statistic
                   title={<span className="text-gray-400">Failed Scans</span>}
                   value={failCount}
                   valueStyle={{ color: '#ef4444', fontSize: '2rem', fontWeight: 'bold' }}
@@ -137,11 +141,11 @@ const WorkerPage = () => {
           {/* Charts Section */}
           <Row gutter={[16, 16]}>
             <Col xs={24} lg={12}>
-              <Card 
+              <Card
                 title={<span className="text-white text-lg font-semibold">Performance Trend (7 Days)</span>}
                 className="!bg-white/5 !border-white/10 backdrop-blur-md"
                 headStyle={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}
-                style={{ 
+                style={{
                   boxShadow: '0 8px 32px rgba(34, 211, 238, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
                 }}
               >
@@ -151,18 +155,18 @@ const WorkerPage = () => {
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
                       <XAxis dataKey="date" stroke="#9ca3af" />
                       <YAxis stroke="#9ca3af" />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'rgba(0,0,0,0.8)', 
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: 'rgba(0,0,0,0.8)',
                           border: '1px solid rgba(34, 211, 238, 0.3)',
                           borderRadius: '8px',
                           backdropFilter: 'blur(10px)'
-                        }} 
+                        }}
                       />
-                      <Line 
-                        type="monotone" 
-                        dataKey="passRate" 
-                        stroke="#22d3ee" 
+                      <Line
+                        type="monotone"
+                        dataKey="passRate"
+                        stroke="#22d3ee"
                         strokeWidth={3}
                         dot={{ fill: '#22d3ee', r: 4 }}
                         filter="drop-shadow(0 0 8px rgba(34, 211, 238, 0.6))"
@@ -174,11 +178,11 @@ const WorkerPage = () => {
             </Col>
 
             <Col xs={24} lg={12}>
-              <Card 
+              <Card
                 title={<span className="text-white text-lg font-semibold">Scan Distribution</span>}
                 className="!bg-white/5 !border-white/10 backdrop-blur-md"
                 headStyle={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}
-                style={{ 
+                style={{
                   boxShadow: '0 8px 32px rgba(34, 211, 238, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
                 }}
               >
@@ -191,15 +195,15 @@ const WorkerPage = () => {
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
                       <XAxis dataKey="name" stroke="#9ca3af" />
                       <YAxis stroke="#9ca3af" />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'rgba(0,0,0,0.8)', 
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: 'rgba(0,0,0,0.8)',
                           border: '1px solid rgba(34, 211, 238, 0.3)',
                           borderRadius: '8px'
-                        }} 
+                        }}
                       />
-                      <Bar 
-                        dataKey="value" 
+                      <Bar
+                        dataKey="value"
                         fill="#22d3ee"
                         radius={[8, 8, 0, 0]}
                         style={{ filter: 'drop-shadow(0 4px 12px rgba(34, 211, 238, 0.4))' }}
@@ -212,19 +216,19 @@ const WorkerPage = () => {
           </Row>
 
           {/* Recent Scans List */}
-          <Card 
+          <Card
             title={<span className="text-white text-xl font-bold">Recent Scans</span>}
             className="!bg-white/5 !border-white/10 backdrop-blur-md"
             headStyle={{ borderBottom: '1px solid rgba(255,255,255,0.2)', padding: '24px 32px' }}
             bodyStyle={{ padding: '12px 0' }}
-            style={{ 
+            style={{
               boxShadow: '0 8px 32px rgba(34, 211, 238, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
             }}
           >
             <List
               dataSource={recentScans}
               renderItem={(item) => (
-                <List.Item 
+                <List.Item
                   className="border-b !border-white/10 last:border-0 hover:!bg-white/10 transition-all duration-200 cursor-pointer"
                   onClick={() => showModal(item)}
                   style={{
@@ -238,10 +242,10 @@ const WorkerPage = () => {
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-4">
                         <span className="text-cyan-300 font-mono text-lg font-semibold">{item.id}</span>
-                        <Tag 
+                        <Tag
                           color={item.status === 'PASS' ? 'success' : 'error'}
-                          style={{ 
-                            fontSize: '13px', 
+                          style={{
+                            fontSize: '13px',
                             fontWeight: '600',
                             padding: '6px 14px',
                             borderRadius: '6px'
@@ -277,7 +281,7 @@ const WorkerPage = () => {
             footer={null}
             className="scan-detail-modal"
             styles={{
-              content: { 
+              content: {
                 backgroundColor: 'rgba(0, 0, 0, 0.9)',
                 backdropFilter: 'blur(20px)',
                 border: '1px solid rgba(34, 211, 238, 0.3)'

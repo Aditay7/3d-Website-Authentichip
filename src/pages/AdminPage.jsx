@@ -5,8 +5,11 @@ import { Card, Row, Col, Statistic, Table, Tag, Progress } from 'antd';
 import { AreaChartOutlined, UserOutlined, WarningOutlined, DatabaseOutlined, CloudServerOutlined } from '@ant-design/icons';
 import { PieChart, Pie, Cell, LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { scanResults, workerStats, batchData, performanceHistory } from '../data/mockData';
+import { useRoleProtection } from '../utils/roleProtection';
 
 const AdminPage = () => {
+  // Protect this page - only admins can access
+  useRoleProtection('admin');
   const totalScans = scanResults.length;
   const passCount = scanResults.filter(s => s.status === 'PASS').length;
   const passRate = ((passCount / totalScans) * 100).toFixed(1);
@@ -33,7 +36,7 @@ const AdminPage = () => {
   return (
     <div className="min-h-screen bg-black relative overflow-hidden font-sans">
       <Navbar />
-      
+
       {/* 3D Background Layer */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="w-full h-full opacity-40">
@@ -46,7 +49,7 @@ const AdminPage = () => {
         {/* Cyan gradient background */}
         <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(22, 78, 99, 0.3) 0%, rgba(21, 94, 117, 0.35) 50%, rgba(22, 78, 99, 0.25) 100%)' }}></div>
         <div className="absolute inset-0" style={{ background: 'linear-gradient(to right, rgba(22, 78, 99, 0.2) 0%, transparent 50%, rgba(22, 78, 99, 0.2) 100%)' }}></div>
-        
+
         {/* Background effects */}
         <div className="absolute inset-0">
           {/* Radial glow */}
@@ -63,15 +66,15 @@ const AdminPage = () => {
         <div className="max-w-7xl mx-auto space-y-6">
           {/* Header with 3D effect */}
           <div className="mb-8">
-            <h1 className="text-5xl font-black mb-2" 
-                style={{ 
-                  background: 'linear-gradient(135deg, #22d3ee 0%, #60a5fa 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                  textShadow: '0 4px 8px rgba(34, 211, 238, 0.3), 0 0 20px rgba(34, 211, 238, 0.2)',
-                  transform: 'perspective(500px) rotateX(5deg)'
-                }}>
+            <h1 className="text-5xl font-black mb-2"
+              style={{
+                background: 'linear-gradient(135deg, #22d3ee 0%, #60a5fa 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                textShadow: '0 4px 8px rgba(34, 211, 238, 0.3), 0 0 20px rgba(34, 211, 238, 0.2)',
+                transform: 'perspective(500px) rotateX(5deg)'
+              }}>
               Admin Analytics Dashboard
             </h1>
             <p className="text-gray-400 text-lg">Comprehensive system overview and performance insights</p>
@@ -80,14 +83,14 @@ const AdminPage = () => {
           {/* Global Stats with 3D Cards */}
           <Row gutter={[16, 16]}>
             <Col xs={24} sm={12} lg={6}>
-              <Card 
+              <Card
                 className="!bg-white/5 !border-white/10 backdrop-blur-md hover:!bg-white/10 transition-all duration-300"
-                style={{ 
+                style={{
                   transform: 'perspective(1000px) rotateY(-3deg)',
                   boxShadow: '0 8px 32px rgba(34, 211, 238, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
                 }}
               >
-                <Statistic 
+                <Statistic
                   title={<span className="text-gray-400">Total Scans</span>}
                   value={totalScans}
                   valueStyle={{ color: '#22d3ee', fontSize: '2rem', fontWeight: 'bold' }}
@@ -96,14 +99,14 @@ const AdminPage = () => {
               </Card>
             </Col>
             <Col xs={24} sm={12} lg={6}>
-              <Card 
+              <Card
                 className="!bg-white/5 !border-white/10 backdrop-blur-md hover:!bg-white/10 transition-all duration-300"
-                style={{ 
+                style={{
                   transform: 'perspective(1000px) rotateY(-1deg)',
                   boxShadow: '0 8px 32px rgba(34, 211, 238, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
                 }}
               >
-                <Statistic 
+                <Statistic
                   title={<span className="text-gray-400">Pass Rate</span>}
                   value={passRate}
                   precision={1}
@@ -113,14 +116,14 @@ const AdminPage = () => {
               </Card>
             </Col>
             <Col xs={24} sm={12} lg={6}>
-              <Card 
+              <Card
                 className="!bg-white/5 !border-white/10 backdrop-blur-md hover:!bg-white/10 transition-all duration-300"
-                style={{ 
+                style={{
                   transform: 'perspective(1000px) rotateY(1deg)',
                   boxShadow: '0 8px 32px rgba(34, 211, 238, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
                 }}
               >
-                <Statistic 
+                <Statistic
                   title={<span className="text-gray-400">Avg OCR Confidence</span>}
                   value={avgConfidence}
                   suffix="%"
@@ -129,14 +132,14 @@ const AdminPage = () => {
               </Card>
             </Col>
             <Col xs={24} sm={12} lg={6}>
-              <Card 
+              <Card
                 className="!bg-white/5 !border-white/10 backdrop-blur-md hover:!bg-white/10 transition-all duration-300"
-                style={{ 
+                style={{
                   transform: 'perspective(1000px) rotateY(3deg)',
                   boxShadow: '0 8px 32px rgba(34, 211, 238, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
                 }}
               >
-                <Statistic 
+                <Statistic
                   title={<span className="text-gray-400">Active Workers</span>}
                   value={activeWorkers}
                   valueStyle={{ color: 'white', fontSize: '2rem', fontWeight: 'bold' }}
@@ -153,10 +156,10 @@ const AdminPage = () => {
           <Row gutter={[16, 16]}>
             {workerStats.map(worker => (
               <Col xs={24} sm={12} md={8} lg={4} key={worker.workerId}>
-                <Card 
-                  className="!bg-white/5 !border-white/10 backdrop-blur-md hover:!border-white/20 transition-all duration-300" 
+                <Card
+                  className="!bg-white/5 !border-white/10 backdrop-blur-md hover:!border-white/20 transition-all duration-300"
                   bodyStyle={{ padding: '12px' }}
-                  style={{ 
+                  style={{
                     boxShadow: '0 4px 16px rgba(34, 211, 238, 0.1)',
                     transform: 'translateZ(0)'
                   }}
@@ -184,11 +187,11 @@ const AdminPage = () => {
           {/* Charts Section */}
           <Row gutter={[16, 16]}>
             <Col xs={24} lg={8}>
-              <Card 
+              <Card
                 title={<span className="text-white text-lg font-semibold">Failure Type Breakdown</span>}
                 className="!bg-white/5 !border-white/10 backdrop-blur-md h-full"
                 headStyle={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}
-                style={{ 
+                style={{
                   boxShadow: '0 8px 32px rgba(34, 211, 238, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
                 }}
               >
@@ -205,19 +208,19 @@ const AdminPage = () => {
                         dataKey="value"
                       >
                         {failureTypes.map((entry, index) => (
-                          <Cell 
-                            key={`cell-${index}`} 
+                          <Cell
+                            key={`cell-${index}`}
                             fill={COLORS[index % COLORS.length]}
                             style={{ filter: 'drop-shadow(0 0 8px rgba(34, 211, 238, 0.4))' }}
                           />
                         ))}
                       </Pie>
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'rgba(0,0,0,0.8)', 
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: 'rgba(0,0,0,0.8)',
                           border: '1px solid rgba(34, 211, 238, 0.3)',
                           borderRadius: '8px'
-                        }} 
+                        }}
                       />
                       <Legend />
                     </PieChart>
@@ -227,11 +230,11 @@ const AdminPage = () => {
             </Col>
 
             <Col xs={24} lg={16}>
-              <Card 
+              <Card
                 title={<span className="text-white text-lg font-semibold">Performance Trend (7 Days)</span>}
                 className="!bg-white/5 !border-white/10 backdrop-blur-md h-full"
                 headStyle={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}
-                style={{ 
+                style={{
                   boxShadow: '0 8px 32px rgba(34, 211, 238, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
                 }}
               >
@@ -241,27 +244,27 @@ const AdminPage = () => {
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
                       <XAxis dataKey="date" stroke="#9ca3af" />
                       <YAxis stroke="#9ca3af" />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'rgba(0,0,0,0.8)', 
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: 'rgba(0,0,0,0.8)',
                           border: '1px solid rgba(34, 211, 238, 0.3)',
                           borderRadius: '8px'
-                        }} 
+                        }}
                       />
                       <Legend />
-                      <Line 
-                        type="monotone" 
-                        dataKey="passRate" 
-                        stroke="#22d3ee" 
+                      <Line
+                        type="monotone"
+                        dataKey="passRate"
+                        stroke="#22d3ee"
                         strokeWidth={3}
                         dot={{ fill: '#22d3ee', r: 4 }}
                         name="Pass Rate %"
                         filter="drop-shadow(0 0 8px rgba(34, 211, 238, 0.6))"
                       />
-                      <Line 
-                        type="monotone" 
-                        dataKey="throughput" 
-                        stroke="#8b5cf6" 
+                      <Line
+                        type="monotone"
+                        dataKey="throughput"
+                        stroke="#8b5cf6"
                         strokeWidth={3}
                         dot={{ fill: '#8b5cf6', r: 4 }}
                         name="Throughput"
@@ -277,17 +280,17 @@ const AdminPage = () => {
           {/* Batch Analytics and Worker Performance */}
           <Row gutter={[16, 16]}>
             <Col xs={24} lg={14}>
-              <Card 
+              <Card
                 title={<span className="text-white text-lg font-semibold">Production Line Batch Analytics</span>}
                 className="!bg-white/5 !border-white/10 backdrop-blur-md"
                 headStyle={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}
-                style={{ 
+                style={{
                   boxShadow: '0 8px 32px rgba(34, 211, 238, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
                 }}
               >
-                <Table 
-                  dataSource={batchData} 
-                  columns={batchColumns} 
+                <Table
+                  dataSource={batchData}
+                  columns={batchColumns}
                   pagination={false}
                   rowKey="batchId"
                   className="ant-table-dark"
@@ -297,11 +300,11 @@ const AdminPage = () => {
             </Col>
 
             <Col xs={24} lg={10}>
-              <Card 
+              <Card
                 title={<span className="text-white text-lg font-semibold">Worker Scan Counts</span>}
                 className="!bg-white/5 !border-white/10 backdrop-blur-md"
                 headStyle={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}
-                style={{ 
+                style={{
                   boxShadow: '0 8px 32px rgba(34, 211, 238, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
                 }}
               >
@@ -311,17 +314,17 @@ const AdminPage = () => {
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
                       <XAxis type="number" stroke="#9ca3af" />
                       <YAxis dataKey="workerName" type="category" stroke="#9ca3af" width={100} />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'rgba(0,0,0,0.8)', 
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: 'rgba(0,0,0,0.8)',
                           border: '1px solid rgba(34, 211, 238, 0.3)',
                           borderRadius: '8px'
-                        }} 
+                        }}
                       />
-                      <Bar 
-                        dataKey="liveScanCount" 
-                        fill="#22d3ee" 
-                        name="Scans" 
+                      <Bar
+                        dataKey="liveScanCount"
+                        fill="#22d3ee"
+                        name="Scans"
                         radius={[0, 4, 4, 0]}
                         style={{ filter: 'drop-shadow(0 4px 12px rgba(34, 211, 238, 0.4))' }}
                       />
@@ -333,11 +336,11 @@ const AdminPage = () => {
           </Row>
 
           {/* System Health */}
-          <Card 
+          <Card
             title={<span className="text-white text-lg font-semibold">System Health & ML Monitoring</span>}
             className="!bg-white/5 !border-white/10 backdrop-blur-md"
             headStyle={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}
-            style={{ 
+            style={{
               boxShadow: '0 8px 32px rgba(34, 211, 238, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
             }}
           >
@@ -346,28 +349,28 @@ const AdminPage = () => {
                 <div className="text-gray-400 mb-2 flex items-center gap-2">
                   <CloudServerOutlined /> Backend Uptime
                 </div>
-                <Progress 
-                  percent={99.9} 
-                  strokeColor="#10b981" 
-                  format={percent => <span className="text-white">{percent}%</span>} 
+                <Progress
+                  percent={99.9}
+                  strokeColor="#10b981"
+                  format={percent => <span className="text-white">{percent}%</span>}
                 />
               </Col>
               <Col span={8}>
                 <div className="text-gray-400 mb-2 flex items-center gap-2">
                   <DatabaseOutlined /> Storage Usage
                 </div>
-                <Progress 
-                  percent={45} 
-                  strokeColor="#3b82f6" 
-                  format={percent => <span className="text-white">{percent}%</span>} 
+                <Progress
+                  percent={45}
+                  strokeColor="#3b82f6"
+                  format={percent => <span className="text-white">{percent}%</span>}
                 />
               </Col>
               <Col span={8}>
                 <div className="text-gray-400 mb-2">ML Model Accuracy</div>
-                <Progress 
-                  percent={98.2} 
-                  strokeColor="#8b5cf6" 
-                  format={percent => <span className="text-white">{percent}%</span>} 
+                <Progress
+                  percent={98.2}
+                  strokeColor="#8b5cf6"
+                  format={percent => <span className="text-white">{percent}%</span>}
                 />
               </Col>
             </Row>
