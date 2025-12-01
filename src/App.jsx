@@ -3,6 +3,8 @@ import LandingPage from './pages/LandingPage';
 import ScanPage from './pages/ScanPage';
 import LoginPage from './components/auth/LoginPage';
 import SignupPage from './components/auth/SignupPage';
+import AdminPage from './pages/AdminPage';
+import WorkerPage from './pages/WorkerPage';
 
 function App() {
   return (
@@ -11,6 +13,8 @@ function App() {
       <Route path="/scan" element={<ScanPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
+      <Route path="/admin" element={<AdminPage />} />
+      <Route path="/worker" element={<WorkerPage />} />
     </Routes>
   );
 }
