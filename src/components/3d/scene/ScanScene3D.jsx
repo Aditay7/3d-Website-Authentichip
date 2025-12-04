@@ -14,23 +14,26 @@ export default function ScanScene3D() {
             <directionalLight position={[10, 10, 5]} intensity={1} />
             <directionalLight position={[-10, -10, 5]} intensity={0.5} />
 
-            {/* ScanJig Model with consistent sizing */}
-            <Suspense fallback={<mesh position={[0, 0, 0]} scale={[0.1, 0.1, 0.1]}><boxGeometry args={[2, 2, 2]} /><meshStandardMaterial color="#22d3ee" opacity={0.5} transparent /></mesh>}>
+            {/* ScanJig Model centered and left-aligned */}
+            <Suspense fallback={<mesh position={[-2, 0, 0]} scale={[0.1, 0.1, 0.1]}><boxGeometry args={[2, 2, 2]} /><meshStandardMaterial color="#22d3ee" opacity={0.5} transparent /></mesh>}>
                 <ScanJigModel 
                     key="scan-jig-model"
-                    position={[0, -2, 0]} 
-                    rotation={[0, 0, 0]} 
-                    scale={[0.1, 0.1, 0.1]}
+                    position={[-2, 0, 0]} 
+                    rotation={[0, 0.2, 0]} 
+                    scale={[0.15, 0.15, 0.15]}
                 />
             </Suspense>
             
-            {/* Interactive Controls */}
+            {/* Interactive Controls targeting centered left-aligned model */}
             <OrbitControls 
-                enableZoom={false}
+                enableZoom={true}
                 enablePan={false}
                 enableRotate={true}
                 autoRotate={false}
                 autoRotateSpeed={0.5}
+                target={[-2, 0, 0]}
+                minDistance={4}
+                maxDistance={12}
             />
             
             {/* Environment for natural reflections */}

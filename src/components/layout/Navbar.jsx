@@ -1,18 +1,39 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { AuthContext } from '../../context/AuthContext';
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const { logout } = useContext(AuthContext);
 
-  const navLinks = [
+  // Check if we're on a worker page
+  const isWorkerPage = location.pathname.startsWith('/worker');
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  // Home page navigation links
+  const homeNavLinks = [
     { label: 'Home', href: '/' },
     { label: 'Hardware', href: '#hardware' },
-    { label: 'Scan Demo', href: '/scan' },
     { label: 'How It Works', href: '#how-it-works' },
     { label: 'About', href: '#about' },
   ];
+
+  // Worker page navigation links
+  const workerNavLinks = [
+    { label: 'Dashboard', href: '/worker' },
+    { label: 'History', href: '/worker/history' },
+    { label: 'Profile', href: '/worker/profile' },
+    { label: 'Scan', href: '/worker/scan' },
+  ];
+
+  // Show worker links when on /worker route, otherwise show home links
+  const currentNavLinks = isWorkerPage ? workerNavLinks : homeNavLinks;
 
   const handleNavClick = (e, href) => {
     e.preventDefault();
@@ -55,7 +76,7 @@ export default function Navbar() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            {navLinks.map((link) => (
+            {currentNavLinks.map((link) => (
               <a
                 key={link.label}
                 href={link.href}
@@ -70,18 +91,29 @@ export default function Navbar() {
 
           {/* CTA Buttons */}
           <div className="hidden md:flex items-center space-x-4">
-            <Link 
-              to="/login"
-              className="text-gray-300 hover:text-white text-sm font-medium transition-colors duration-200"
-            >
-              Login
-            </Link>
-            <Link 
-              to="/signup"
-              className="px-6 py-2 bg-cyan-500 hover:bg-cyan-400 text-black font-semibold rounded-full text-sm transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(34,211,238,0.6)]"
-            >
-              Sign Up
-            </Link>
+            {isWorkerPage ? (
+              <button
+                onClick={handleLogout}
+                className="px-6 py-2 bg-cyan-500 hover:bg-cyan-400 text-black font-semibold rounded-full text-sm transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(34,211,238,0.6)]"
+              >
+                Logout
+              </button>
+            ) : (
+              <>
+                <Link 
+                  to="/login"
+                  className="text-gray-300 hover:text-white text-sm font-medium transition-colors duration-200"
+                >
+                  Login
+                </Link>
+                <Link 
+                  to="/signup"
+                  className="px-6 py-2 bg-cyan-500 hover:bg-cyan-400 text-white font-semibold rounded-full text-sm transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(34,211,238,0.6)]"
+                >
+                  Sign Up
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -122,7 +154,7 @@ export default function Navbar() {
         }`}
       >
         <div className="px-4 pt-2 pb-4 space-y-2 bg-cyan-900/30 backdrop-blur-md border-b border-cyan-500/20">
-          {navLinks.map((link) => (
+          {currentNavLinks.map((link) => (
             <a
               key={link.label}
               href={link.href}
@@ -133,20 +165,34 @@ export default function Navbar() {
             </a>
           ))}
           <div className="flex flex-col space-y-3 mt-4">
-            <Link 
-              to="/login"
-              className="w-full text-center py-2 text-gray-300 hover:text-white text-sm font-medium transition-colors duration-200"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Login
-            </Link>
-            <Link 
-              to="/signup"
-              className="w-full px-6 py-2 bg-cyan-500 hover:bg-cyan-400 text-black font-semibold rounded-full text-sm transition-all duration-300 text-center"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Sign Up
-            </Link>
+            {isWorkerPage ? (
+              <button
+                onClick={() => {
+                  handleLogout();
+                  setMobileMenuOpen(false);
+                }}
+                className="w-full px-6 py-2 bg-cyan-500 hover:bg-cyan-400 text-black font-semibold rounded-full text-sm transition-all duration-300 text-center"
+              >
+                Logout
+              </button>
+            ) : (
+              <>
+                <Link 
+                  to="/login"
+                  className="w-full text-center py-2 text-gray-300 hover:text-white text-sm font-medium transition-colors duration-200"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Login
+                </Link>
+                <Link 
+                  to="/signup"
+                  className="w-full px-6 py-2 bg-cyan-500 hover:bg-cyan-400 text-white font-semibold rounded-full text-sm transition-all duration-300 text-center"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Sign Up
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>

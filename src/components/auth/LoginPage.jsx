@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import Navbar from '../layout/Navbar';
 import HardwareModel3D from '../3d/HardwareModel3D';
 import { Link, useNavigate } from 'react-router-dom';
 import { setAuthToken, decodeToken } from '../../utils/auth';
+import { AuthContext } from '../../context/AuthContext';
 
 export default function LoginPage() {
 	const navigate = useNavigate();
+	const { login } = useContext(AuthContext);
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
 	const [error, setError] = useState('');
@@ -18,6 +20,33 @@ export default function LoginPage() {
 		setLoading(true);
 
 		try {
+			// For demo purposes, allow simple login without backend
+			// In production, replace this with actual API call
+			
+			// Demo credentials
+			if (email === 'worker@authentichip.com' && password === 'worker123') {
+				const userData = {
+					name: 'John Worker',
+					email: email,
+					role: 'worker',
+				};
+				login('worker', userData);
+				navigate('/worker/dashboard');
+				return;
+			}
+			
+			if (email === 'admin@authentichip.com' && password === 'admin123') {
+				const userData = {
+					name: 'Admin User',
+					email: email,
+					role: 'admin',
+				};
+				login('admin', userData);
+				navigate('/admin');
+				return;
+			}
+
+			// If API is available, use actual backend
 			const response = await fetch('/api/v1/auth/login', {
 				method: 'POST',
 				headers: {
@@ -32,7 +61,7 @@ export default function LoginPage() {
 			const data = await response.json();
 
 			if (!response.ok) {
-				throw new Error(data.detail || 'Login failed');
+				throw new Error(data.detail || 'Invalid credentials. Try demo accounts.');
 			}
 
 			// Login successful
@@ -42,39 +71,40 @@ export default function LoginPage() {
 			if (data.access_token) {
 				setAuthToken(data.access_token);
 
-				// Store user info in localStorage for quick access
-				if (data.user) {
-					localStorage.setItem('user', JSON.stringify(data.user));
-				}
-
-				// Get role from response (new backend format)
+				// Get role from response
 				const role = data.user?.role;
+				const userData = data.user;
 
 				console.log('User role:', role);
+
+				// Update context
+				login(role, userData);
 
 				// Redirect based on role
 				if (role === 'admin') {
 					navigate('/admin');
 				} else if (role === 'worker') {
-					navigate('/worker');
+					navigate('/worker/dashboard');
 				} else {
 					// Fallback: try to decode token if user object not present
 					const payload = decodeToken(data.access_token);
 					const tokenRole = payload?.role;
 
+					login(tokenRole, payload);
+
 					if (tokenRole === 'admin') {
 						navigate('/admin');
 					} else if (tokenRole === 'worker') {
-						navigate('/worker');
+						navigate('/worker/dashboard');
 					} else {
-						navigate('/'); // Redirect to home
+						navigate('/');
 					}
 				}
 			} else {
 				throw new Error('No access token received');
 			}
 		} catch (err) {
-			setError(err.message);
+			setError(err.message || 'Login failed. Try demo: worker@authentichip.com / worker123');
 		} finally {
 			setLoading(false);
 		}
@@ -116,6 +146,15 @@ export default function LoginPage() {
 							Welcome back
 						</h2>
 						<p className="text-gray-400 text-sm">Enter your details to access your workspace</p>
+					</div>
+
+					{/* Demo Credentials Info */}
+					<div className="mb-6 p-4 bg-cyan-500/10 border border-cyan-500/20 rounded-xl">
+						<p className="text-cyan-400 text-xs font-semibold mb-2">🔑 Demo Credentials:</p>
+						<p className="text-gray-300 text-xs">
+							<strong>Worker:</strong> worker@authentichip.com / worker123<br />
+							<strong>Admin:</strong> admin@authentichip.com / admin123
+						</p>
 					</div>
 
 					{error && (

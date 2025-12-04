@@ -2,7 +2,7 @@ import { useRef, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 
-export default function ScanJigModel({ position = [0, 0, 0], rotation = [0, 0, 0], scale = 1 }) {
+export default function ScanJigModel({ position = [5, 5, 5], rotation = [0, 0, 0], scale = 1 }) {
     const meshRef = useRef();
     const { scene } = useGLTF('/models/wcJIG.glb');
     
@@ -13,7 +13,7 @@ export default function ScanJigModel({ position = [0, 0, 0], rotation = [0, 0, 0
             const primitive = meshRef.current.children[0];
             if (primitive) {
                 primitive.scale.set(1, 1, 1);
-                primitive.position.set(0, 0, 0);
+                primitive.position.set(-28, -20, -19);
                 primitive.rotation.set(0, 0, 0);
             }
         }
