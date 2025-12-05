@@ -8,7 +8,7 @@ export default function ScanDemoSection() {
     const navigate = useNavigate();
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
     const [isDragging, setIsDragging] = useState(false);
-    const [scannerStatus, setScannerStatus] = useState('ready'); 
+    const [scannerStatus, setScannerStatus] = useState('ready');
     const [isAutoFocus, setIsAutoFocus] = useState(true);
     const [zoomLevel, setZoomLevel] = useState(1);
     const [scanProgress, setScanProgress] = useState(0);
@@ -78,7 +78,7 @@ export default function ScanDemoSection() {
 
     return (
         <section
-            id="scan"
+            id="scandemo"
             className="min-h-screen flex items-center relative pointer-events-none px-6 sm:px-10 lg:px-20"
             style={{ scrollMarginTop: '64px' }}
             onMouseMove={handleMouseMove}
@@ -195,7 +195,7 @@ export default function ScanDemoSection() {
                                 {/* Modular System Card */}
                                 <div className="bg-black/60 backdrop-blur-xl border border-cyan-400/30 rounded-2xl p-6 w-72 relative overflow-hidden group hover:scale-105 hover:border-cyan-300/60 transition-all duration-500 hover:shadow-[0_0_30px_rgba(34,211,238,0.4)]">
                                     <div className="absolute inset-0 bg-linear-to-br from-cyan-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                                    
+
                                     <div className="relative z-10">
                                         <div className="flex items-center gap-3 mb-4">
                                             <div className="w-12 h-12 bg-linear-to-br from-cyan-400/20 to-blue-500/20 rounded-xl flex items-center justify-center">
@@ -208,11 +208,11 @@ export default function ScanDemoSection() {
                                                 <p className="text-cyan-400 text-sm">Immutable Provenance</p>
                                             </div>
                                         </div>
-                                        
+
                                         <p className="text-gray-300 text-sm leading-relaxed mb-4">
                                             Every scan generates a cryptographic passport with SHA-256 hash stored in append-only ledger for tamper-proof verification.
                                         </p>
-                                        
+
                                         <div className="space-y-2">
                                             <div className="flex items-center gap-2">
                                                 <div className="w-2 h-2 bg-cyan-400 rounded-full"></div>
@@ -233,7 +233,7 @@ export default function ScanDemoSection() {
                                 {/* AI Detection Card */}
                                 <div className="bg-black/60 backdrop-blur-xl border border-purple-400/30 rounded-2xl p-6 w-72 relative overflow-hidden group hover:scale-105 hover:border-purple-300/60 transition-all duration-500 hover:shadow-[0_0_30px_rgba(147,51,234,0.4)]">
                                     <div className="absolute inset-0 bg-linear-to-br from-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                                    
+
                                     <div className="relative z-10">
                                         <div className="flex items-center gap-3 mb-4">
                                             <div className="w-12 h-12 bg-linear-to-br from-purple-400/20 to-pink-500/20 rounded-xl flex items-center justify-center">
@@ -247,11 +247,11 @@ export default function ScanDemoSection() {
                                                 <p className="text-purple-400 text-sm">Multi-Role Decision Engine</p>
                                             </div>
                                         </div>
-                                        
+
                                         <p className="text-gray-300 text-sm leading-relaxed mb-4">
                                             Automated decision engine with human-in-the-loop workflows for Admin, Worker, and User roles with dispute resolution.
                                         </p>
-                                        
+
                                         <div className="space-y-2">
                                             <div className="flex items-center gap-2">
                                                 <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
@@ -278,13 +278,13 @@ export default function ScanDemoSection() {
                                 <div className="relative w-32 h-16 bg-black/30 backdrop-blur-2xl rounded-2xl border border-cyan-400/20 overflow-hidden transition-all duration-700 ease-out group-hover:w-36 group-hover:h-18 group-hover:bg-black/50 group-hover:border-cyan-300/40">
                                     {/* Animated gradient background */}
                                     <div className="absolute inset-0 bg-linear-to-r from-cyan-500/20 via-blue-500/10 to-purple-500/20 opacity-50 group-hover:opacity-80 transition-opacity duration-500"></div>
-                                    
+
                                     {/* Scanning beam effect */}
                                     <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                                         <div className="absolute top-0 left-0 w-1 h-full bg-linear-to-b from-transparent via-cyan-400 to-transparent animate-pulse"></div>
-                                        <div className="absolute top-0 right-0 w-1 h-full bg-linear-to-b from-transparent via-cyan-400 to-transparent animate-pulse" style={{animationDelay: '0.3s'}}></div>
-                                        <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-transparent via-cyan-400 to-transparent animate-pulse" style={{animationDelay: '0.6s'}}></div>
-                                        <div className="absolute bottom-0 left-0 w-full h-1 bg-linear-to-r from-transparent via-cyan-400 to-transparent animate-pulse" style={{animationDelay: '0.9s'}}></div>
+                                        <div className="absolute top-0 right-0 w-1 h-full bg-linear-to-b from-transparent via-cyan-400 to-transparent animate-pulse" style={{ animationDelay: '0.3s' }}></div>
+                                        <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-transparent via-cyan-400 to-transparent animate-pulse" style={{ animationDelay: '0.6s' }}></div>
+                                        <div className="absolute bottom-0 left-0 w-full h-1 bg-linear-to-r from-transparent via-cyan-400 to-transparent animate-pulse" style={{ animationDelay: '0.9s' }}></div>
                                     </div>
 
                                     {/* Main Content */}
@@ -298,9 +298,9 @@ export default function ScanDemoSection() {
                                                     {/* Scanning rays */}
                                                     <div className="absolute inset-0">
                                                         <div className="absolute top-0 left-1/2 w-0.5 h-4 bg-cyan-400 transform -translate-x-1/2 animate-pulse"></div>
-                                                        <div className="absolute bottom-0 left-1/2 w-0.5 h-4 bg-cyan-400 transform -translate-x-1/2 animate-pulse" style={{animationDelay: '0.2s'}}></div>
-                                                        <div className="absolute left-0 top-1/2 w-4 h-0.5 bg-cyan-400 transform -translate-y-1/2 animate-pulse" style={{animationDelay: '0.4s'}}></div>
-                                                        <div className="absolute right-0 top-1/2 w-4 h-0.5 bg-cyan-400 transform -translate-y-1/2 animate-pulse" style={{animationDelay: '0.6s'}}></div>
+                                                        <div className="absolute bottom-0 left-1/2 w-0.5 h-4 bg-cyan-400 transform -translate-x-1/2 animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                                                        <div className="absolute left-0 top-1/2 w-4 h-0.5 bg-cyan-400 transform -translate-y-1/2 animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                                                        <div className="absolute right-0 top-1/2 w-4 h-0.5 bg-cyan-400 transform -translate-y-1/2 animate-pulse" style={{ animationDelay: '0.6s' }}></div>
                                                     </div>
                                                 </div>
                                             ) : (
@@ -332,16 +332,16 @@ export default function ScanDemoSection() {
 
                                     {/* Progress indicator when scanning */}
                                     {scannerStatus === 'scanning' && (
-                                        <div className="absolute bottom-0 left-0 h-0.5 bg-cyan-400 transition-all duration-1000 ease-out" style={{width: '60%'}}></div>
+                                        <div className="absolute bottom-0 left-0 h-0.5 bg-cyan-400 transition-all duration-1000 ease-out" style={{ width: '60%' }}></div>
                                     )}
                                 </div>
 
                                 {/* Floating particles */}
                                 <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                                    <div className="absolute -top-1 left-4 w-1 h-1 bg-cyan-400 rounded-full animate-bounce" style={{animationDelay: '0s'}}></div>
-                                    <div className="absolute -top-2 right-6 w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-                                    <div className="absolute -bottom-1 left-8 w-1 h-1 bg-purple-400 rounded-full animate-bounce" style={{animationDelay: '0.4s'}}></div>
-                                    <div className="absolute -bottom-2 right-4 w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce" style={{animationDelay: '0.6s'}}></div>
+                                    <div className="absolute -top-1 left-4 w-1 h-1 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
+                                    <div className="absolute -top-2 right-6 w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                                    <div className="absolute -bottom-1 left-8 w-1 h-1 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+                                    <div className="absolute -bottom-2 right-4 w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: '0.6s' }}></div>
                                 </div>
 
                                 {/* Holographic glow effect */}
@@ -390,8 +390,8 @@ export default function ScanDemoSection() {
                                 {/* Sparkle effects */}
                                 <div className="absolute -top-2 left-1/2 w-2 h-2 bg-yellow-400 rounded-full animate-bounce"></div>
                                 <div className="absolute top-1/4 -right-2 w-1.5 h-1.5 bg-white rounded-full animate-ping"></div>
-                                <div className="absolute bottom-1/4 -left-2 w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-                                <div className="absolute -bottom-2 right-1/3 w-1.5 h-1.5 bg-green-300 rounded-full animate-ping" style={{animationDelay: '0.4s'}}></div>
+                                <div className="absolute bottom-1/4 -left-2 w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                                <div className="absolute -bottom-2 right-1/3 w-1.5 h-1.5 bg-green-300 rounded-full animate-ping" style={{ animationDelay: '0.4s' }}></div>
                             </div>
                         </div>
                     )}

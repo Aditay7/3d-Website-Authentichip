@@ -1,6 +1,6 @@
 import React from "react";
-import Navbar from "../components/layout/Navbar";
-import HardwareModel3D from "../components/3d/HardwareModel3D";
+import Navbar from "../../components/layout/Navbar";
+import HardwareModel3D from "../../components/3d/HardwareModel3D";
 import { Card, Row, Col, Statistic, Table, Tag, Progress } from "antd";
 import {
 	AreaChartOutlined,
@@ -29,8 +29,8 @@ import {
 	workerStats,
 	batchData,
 	performanceHistory,
-} from "../data/mockData";
-import { useRoleProtection } from "../utils/roleProtection";
+} from "../../data/mockData";
+import { useRoleProtection } from "../../utils/roleProtection";
 
 const AdminPage = () => {
 	// Protect this page - only admins can access
@@ -267,8 +267,8 @@ const AdminPage = () => {
 												worker.currentStatus === "Active"
 													? "green"
 													: worker.currentStatus === "Idle"
-													? "orange"
-													: "red"
+														? "orange"
+														: "red"
 											}
 										>
 											{worker.currentStatus}

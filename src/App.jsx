@@ -3,13 +3,17 @@ import LandingPage from "./pages/LandingPage";
 import ScanPage from "./pages/ScanPage";
 import LoginPage from "./components/auth/LoginPage";
 import SignupPage from "./components/auth/SignupPage";
-import WorkerPage from "./pages/WorkerPage";
 
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
-import AdminPage from "./pages/AdminPage";
+import AdminPage from "./pages/admin/AdminPage";
 import ScanHistoryPage from "./pages/admin/ScanHistoryPage";
 import UserProfilePage from "./pages/admin/UserProfilePage";
 import AdminShell from "./components/admin/AdminShell";
+
+import WorkerDashboard from "./pages/worker/WorkerDashboard";
+import WorkerHistoryPage from "./pages/worker/HistoryPage";
+import WorkerProfilePage from "./pages/worker/ProfilePage";
+import WorkerScanPage from "./pages/worker/ScanPage";
 
 function App() {
 	return (
@@ -28,8 +32,15 @@ function App() {
 				<Route path="profile" element={<UserProfilePage />} />
 			</Route>
 
-			<Route path="/worker" element={<WorkerPage />} />
-			{/* base /admin handled by nested Route above */}
+			{/* Worker Routes */}
+			<Route path="/worker">
+				<Route index element={<Navigate to="/worker/dashboard" replace />} />
+				<Route path="dashboard" element={<WorkerDashboard />} />
+				<Route path="history" element={<WorkerHistoryPage />} />
+				<Route path="profile" element={<WorkerProfilePage />} />
+				<Route path="scan" element={<WorkerScanPage />} />
+			</Route>
+
 		</Routes>
 	);
 }

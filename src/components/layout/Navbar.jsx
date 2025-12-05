@@ -10,7 +10,7 @@ export default function Navbar() {
 	const navLinks = [
 		{ label: "Home", href: "/" },
 		{ label: "Hardware", href: "#hardware" },
-		{ label: "Scan Demo", href: "/scan" },
+		{ label: "Scan IC", href: "#scandemo" },
 		{ label: "How It Works", href: "#how-it-works" },
 		{ label: "About", href: "#about" },
 	];
@@ -21,11 +21,22 @@ export default function Navbar() {
 		{ label: "Profile", href: "/admin/profile" },
 	];
 
+	const workerLinks = [
+		{ label: "Dashboard", href: "/worker/dashboard" },
+		{ label: "History", href: "/worker/history" },
+		{ label: "Scan", href: "/worker/scan" },
+		{ label: "Profile", href: "/worker/profile" }
+	];
+
 	const { userRole, isLoggedIn, logout } = useContext(AuthContext);
 
 	// Show admin links when on admin pages or when userRole==='admin'
 	const showAdminLinks =
 		userRole === "admin" || location.pathname.includes("/admin");
+
+	// Show worker links when on worker pages or when userRole==='worker'
+	const showWorkerLinks =
+		userRole === "worker" || location.pathname.includes("/worker");
 
 	// DEBUG: log role for troubleshooting
 	if (typeof window !== "undefined") {
@@ -82,6 +93,17 @@ export default function Navbar() {
 					<div className="hidden md:flex items-center space-x-8">
 						{showAdminLinks
 							? adminLinks.map((link) => (
+								<Link
+									key={link.href}
+									to={link.href}
+									className="relative group inline-block overflow-visible text-gray-300 hover:text-cyan-400 text-xs uppercase tracking-wider transition-colors duration-200"
+								>
+									{link.label}
+									<span className="absolute bottom-0 left-0 w-full h-0.5 bg-cyan-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left z-50 pointer-events-none"></span>
+								</Link>
+							))
+							: showWorkerLinks
+								? workerLinks.map((link) => (
 									<Link
 										key={link.href}
 										to={link.href}
@@ -90,8 +112,8 @@ export default function Navbar() {
 										{link.label}
 										<span className="absolute bottom-0 left-0 w-full h-0.5 bg-cyan-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left z-50 pointer-events-none"></span>
 									</Link>
-							  ))
-							: navLinks.map((link) => (
+								))
+								: navLinks.map((link) => (
 									<a
 										key={link.label}
 										href={link.href}
@@ -101,12 +123,12 @@ export default function Navbar() {
 										{link.label}
 										<span className="absolute bottom-0 left-0 w-0 h-0.5 bg-cyan-400 group-hover:w-full transition-all duration-300"></span>
 									</a>
-							  ))}
+								))}
 					</div>
 
 					{/* CTA Buttons */}
 					<div className="hidden md:flex items-center space-x-4">
-						{showAdminLinks ? (
+						{showAdminLinks || showWorkerLinks ? (
 							<button
 								onClick={() => {
 									logout();
@@ -167,14 +189,37 @@ export default function Navbar() {
 
 			{/* Mobile Menu */}
 			<div
-				className={`md:hidden transition-all duration-300 overflow-hidden ${
-					mobileMenuOpen ? "max-h-screen" : "max-h-0"
-				}`}
+				className={`md:hidden transition-all duration-300 overflow-hidden ${mobileMenuOpen ? "max-h-screen" : "max-h-0"
+					}`}
 			>
 				<div className="px-4 pt-2 pb-4 space-y-2 bg-cyan-900/30 backdrop-blur-md border-b border-cyan-500/20">
 					{showAdminLinks ? (
 						<>
 							{adminLinks.map((link) => (
+								<Link
+									key={link.href}
+									to={link.href}
+									onClick={() => setMobileMenuOpen(false)}
+									className="block px-4 py-2 text-gray-300 hover:text-cyan-400 rounded text-sm"
+								>
+									{link.label}
+								</Link>
+							))}
+							<div className="border-t border-cyan-500/10 mt-2 pt-2"></div>
+							<button
+								onClick={() => {
+									logout();
+									navigate("/");
+									setMobileMenuOpen(false);
+								}}
+								className="w-full px-6 py-2 bg-cyan-500 hover:bg-cyan-400 text-white font-semibold rounded-full text-sm transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(34,211,238,0.6)]"
+							>
+								Logout
+							</button>
+						</>
+					) : showWorkerLinks ? (
+						<>
+							{workerLinks.map((link) => (
 								<Link
 									key={link.href}
 									to={link.href}
