@@ -112,6 +112,21 @@ nav {
 	z-index: 9999 !important;
 }
 
+/* Position Ant Design messages and notifications below the navbar */
+.ant-message {
+	top: 80px !important; /* Navbar height (64px) + spacing */
+	z-index: 9998 !important; /* Below navbar but above content */
+}
+
+.ant-notification {
+	top: 80px !important; /* Navbar height (64px) + spacing */
+	z-index: 9998 !important; /* Below navbar but above content */
+}
+
+.ant-modal-wrap {
+	z-index: 10000 !important; /* Modals should still appear above navbar */
+}
+
 /* Range thumb styling (WebKit + Firefox) */
 input[type="range"] {
 	-webkit-appearance: none;
