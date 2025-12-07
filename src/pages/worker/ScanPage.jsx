@@ -24,9 +24,19 @@ export default function ScanPage() {
   const [searchResult, setSearchResult] = useState(null);
   const [loadingStep, setLoadingStep] = useState(0);
 
+  // Streaming control states
+  const [streamingEnabled, setStreamingEnabled] = useState(false);
+  const [streamingActive, setStreamingActive] = useState(false);
+
+  // Web scraping confirmation states
+  const [showScrapingConfirmation, setShowScrapingConfirmation] = useState(false);
+  const [pendingPartNumber, setPendingPartNumber] = useState('');
+  const [isScraping, setIsScraping] = useState(false);
+
   // API endpoints
-  const STREAM_URL = 'http://192.168.12.106:5500';
-  const SNAPSHOT_URL = 'http://192.168.12.106:5500/snapshot';
+
+  const STREAM_URL = 'http://10.106.241.16:5000/';
+  const SNAPSHOT_URL = 'http://10.106.241.16:5000/capture';
 
   const captureImage = async () => {
     setIsCapturing(true);
@@ -95,38 +105,209 @@ export default function ScanPage() {
     message.info('Stream refreshed');
   };
 
-  const handlePartNumberChange = (value) => {
-    setPartNumber(value);
-    if (value.length > 3) { // Start search after a few characters
-      setIsSearching(true);
+  const handleStartStreaming = () => {
+    setStreamingActive(true);
+    message.info('Stream started. Please place your IC on the jig for scanning.', 4);
+  };
+
+  const handleStopStreaming = () => {
+    setStreamingActive(false);
+    setStreamKey(Date.now()); // Reset stream
+    setCapturedImage(null);
+    setScanResult(null);
+    message.info('Stream stopped');
+  };
+
+  const handlePartNumberSearch = async (value) => {
+    if (!value || value.trim().length === 0) {
+      setIsSearching(false);
       setSearchResult(null);
       setLoadingStep(0);
+      setShowScrapingConfirmation(false);
+      return;
+    }
 
-      // Simulate search steps
-      setTimeout(() => setLoadingStep(1), 500);
-      setTimeout(() => setLoadingStep(2), 1500);
+    setIsSearching(true);
+    setSearchResult(null);
+    setLoadingStep(0);
+    setShowScrapingConfirmation(false);
 
-      setTimeout(() => {
-        const found = Math.random() > 0.5; // Simulate success/failure
-        if (found) {
-          setSearchResult({
-            found: true,
-            partNumber: value,
-            description: 'High-performance Microcontroller',
-            manufacturer: 'Acme Corp',
-            status: 'Active',
-          });
-          message.success(`Part "${value}" found!`);
-        } else {
-          setSearchResult({
-            found: false,
-            partNumber: value,
-          });
-          message.error(`Part "${value}" not found.`);
+    try {
+      // Step 1: Searching database ONLY (no auto-scrape)
+      setLoadingStep(1);
+
+      const response = await fetch(
+        `http://localhost:8000/api/v1/ic/search/${encodeURIComponent(value)}?auto_scrape=false`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          }
         }
-        setIsSearching(false);
-        setLoadingStep(0);
-      }, 3000);
+      );
+
+      if (response.ok) {
+        const icData = await response.json();
+
+        // Check if this was auto-scraped (new record)
+        const isAutoScraped = (
+          icData.overall_confidence_score === 0 &&
+          icData.texture_model_confidence_score === 0 &&
+          icData.dimensions_match === false &&
+          icData.image_data?.original_image_path === null
+        );
+
+        // Step 2: Loading models (simulate for UX)
+        setLoadingStep(2);
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Step 3: Verifying specifications
+        setLoadingStep(3);
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        setSearchResult({
+          found: true,
+          id: icData.id,
+          partNumber: icData.full_part_number,
+          manufacturer: icData.manufacturer,
+          packageType: icData.package_type,
+          allowedMarkings: icData.allowed_markings,
+          packageDimensions: icData.package_dimensions,
+          imageData: icData.image_data,
+          dimensionsMatch: icData.dimensions_match,
+          textureConfidence: icData.texture_model_confidence_score,
+          overallConfidence: icData.overall_confidence_score,
+          isAutoScraped: isAutoScraped,
+          status: 'Active',
+        });
+
+        // Enable streaming after successful search
+        setStreamingEnabled(true);
+
+        if (isAutoScraped) {
+          message.success(`Part "${value}" found! (Auto-scraped from datasheet) - You can now start streaming.`, 5);
+        } else {
+          message.success(`Part "${value}" found in database! - You can now start streaming.`);
+        }
+      } else if (response.status === 404) {
+        // IC not found in database - show confirmation dialog
+        setPendingPartNumber(value);
+        setShowScrapingConfirmation(true);
+        message.warning(`Part "${value}" not found in local database.`);
+      } else {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error('IC Search Error:', error);
+      setSearchResult({
+        found: false,
+        partNumber: value,
+        error: error.message,
+      });
+      message.error(`Search failed: ${error.message}`);
+    } finally {
+      setIsSearching(false);
+      setLoadingStep(0);
+    }
+  };
+
+  const handleStartWebScraping = async () => {
+    setShowScrapingConfirmation(false);
+    setIsScraping(true);
+    setLoadingStep(0);
+
+    try {
+      // Step 1: Searching database
+      setLoadingStep(1);
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Step 2: Scraping datasheets
+      setLoadingStep(2);
+      message.info('Scraping web for part number...');
+
+      const response = await fetch(
+        `http://localhost:8000/api/v1/ic/search/${encodeURIComponent(pendingPartNumber)}?auto_scrape=true`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (response.ok) {
+        const icData = await response.json();
+
+        // Step 3: Extracting with AI
+        setLoadingStep(3);
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        setSearchResult({
+          found: true,
+          id: icData.id,
+          partNumber: icData.full_part_number,
+          manufacturer: icData.manufacturer,
+          packageType: icData.package_type,
+          allowedMarkings: icData.allowed_markings,
+          packageDimensions: icData.package_dimensions,
+          imageData: icData.image_data,
+          dimensionsMatch: icData.dimensions_match,
+          textureConfidence: icData.texture_model_confidence_score,
+          overallConfidence: icData.overall_confidence_score,
+          isAutoScraped: true,
+          status: 'Active',
+        });
+
+        // Enable streaming after successful scraping
+        setStreamingEnabled(true);
+        message.success(`Part "${pendingPartNumber}" scraped successfully! - You can now start streaming.`, 5);
+      } else if (response.status === 404) {
+        setSearchResult({
+          found: false,
+          partNumber: pendingPartNumber,
+        });
+        message.error(`Part "${pendingPartNumber}" not found in available datasheets.`);
+      } else {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error('Web Scraping Error:', error);
+      setSearchResult({
+        found: false,
+        partNumber: pendingPartNumber,
+        error: error.message,
+      });
+      message.error(`Web scraping failed: ${error.message}`);
+    } finally {
+      setIsScraping(false);
+      setLoadingStep(0);
+      setPendingPartNumber('');
+    }
+  };
+
+  const handleCancelScraping = () => {
+    setShowScrapingConfirmation(false);
+    setPendingPartNumber('');
+    message.info('Web scraping cancelled');
+  };
+
+  const handlePartNumberChange = (value) => {
+    setPartNumber(value);
+
+    // Reset streaming when starting new search
+    setStreamingEnabled(false);
+    setStreamingActive(false);
+
+    // Debounce search - only trigger after user stops typing
+    if (value.length > 2) {
+      // Clear previous timeout
+      if (window.searchTimeout) {
+        clearTimeout(window.searchTimeout);
+      }
+      // Set new timeout
+      window.searchTimeout = setTimeout(() => {
+        handlePartNumberSearch(value);
+      }, 800); // Wait 800ms after user stops typing
     } else {
       setIsSearching(false);
       setSearchResult(null);
@@ -178,50 +359,112 @@ export default function ScanPage() {
             >
               {/* Video Container */}
               <div id="video-container" className="relative bg-black aspect-video">
-                {/* Live Stream via iframe */}
-                <iframe
-                  key={streamKey}
-                  src={STREAM_URL}
-                  className="w-full h-full"
-                  style={{
-                    border: 'none',
-                    display: 'block',
-                  }}
-                  title="Live Camera Stream"
-                  allow="camera"
-                />
+                {streamingActive ? (
+                  <>
+                    {/* Live Stream via iframe */}
+                    <iframe
+                      key={streamKey}
+                      src={STREAM_URL}
+                      className="w-full h-full"
+                      style={{
+                        border: 'none',
+                        display: 'block',
+                      }}
+                      title="Live Camera Stream"
+                      allow="camera"
+                    />
 
-                {/* Overlay Status */}
-                <div className="absolute top-4 right-4 flex gap-2">
-                  <Tag color="success" className="!px-3 !py-1">
-                    <span className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                      Live Stream
-                    </span>
-                  </Tag>
-                </div>
+                    {/* Overlay Status */}
+                    <div className="absolute top-4 right-4 flex gap-2">
+                      <Tag color="success" className="!px-3 !py-1">
+                        <span className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                          Live Stream
+                        </span>
+                      </Tag>
+                    </div>
+
+                    {/* User Prompt Overlay */}
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-cyan-600/90 backdrop-blur-sm px-6 py-3 rounded-lg border border-cyan-400/50">
+                      <p className="text-white font-medium text-center">
+                        📍 Place your IC on the jig for scanning
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {/* Placeholder when stream is not active */}
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 to-black">
+                      <CameraOutlined className="text-6xl text-gray-600 mb-4" />
+                      <h3 className="text-xl font-semibold text-gray-400 mb-2">
+                        {streamingEnabled ? 'Ready to Stream' : 'Stream Not Available'}
+                      </h3>
+                      <p className="text-gray-500 text-center max-w-md px-4">
+                        {streamingEnabled
+                          ? 'Click "Start Streaming" below to begin live video capture'
+                          : 'Search for an IC part number first to enable streaming'}
+                      </p>
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Control Panel */}
               <div className="p-4 border-t border-white/10">
-                <Space size="middle" wrap>
-                  <Button
-                    icon={<ReloadOutlined />}
-                    onClick={refreshStream}
-                    size="large"
-                    className="!bg-white/10 !border-white/20 !text-white hover:!bg-white/20"
-                  >
-                    Refresh Stream
-                  </Button>
+                <Space size="middle" wrap className="w-full">
+                  {streamingActive ? (
+                    <>
+                      <Button
+                        icon={<ReloadOutlined />}
+                        onClick={refreshStream}
+                        size="large"
+                        className="!bg-white/10 !border-white/20 !text-white hover:!bg-white/20"
+                      >
+                        Refresh Stream
+                      </Button>
 
-                  <Button
-                    icon={isFullscreen ? <FullscreenExitOutlined /> : <FullscreenOutlined />}
-                    onClick={toggleFullscreen}
-                    size="large"
-                    className="!bg-white/10 !border-white/20 !text-white hover:!bg-white/20"
-                  >
-                    {isFullscreen ? 'Exit' : 'Fullscreen'}
-                  </Button>
+                      <Button
+                        icon={isFullscreen ? <FullscreenExitOutlined /> : <FullscreenOutlined />}
+                        onClick={toggleFullscreen}
+                        size="large"
+                        className="!bg-white/10 !border-white/20 !text-white hover:!bg-white/20"
+                      >
+                        {isFullscreen ? 'Exit' : 'Fullscreen'}
+                      </Button>
+
+                      <Button
+                        icon={<CameraOutlined />}
+                        onClick={captureImage}
+                        loading={isCapturing}
+                        size="large"
+                        type="primary"
+                        className="!bg-gradient-to-r !from-green-500 !to-green-600 !border-0"
+                      >
+                        Capture & Scan
+                      </Button>
+
+                      <Button
+                        danger
+                        onClick={handleStopStreaming}
+                        size="large"
+                        className="ml-auto"
+                      >
+                        Stop Streaming
+                      </Button>
+                    </>
+                  ) : (
+                    <Button
+                      icon={<CameraOutlined />}
+                      onClick={handleStartStreaming}
+                      disabled={!streamingEnabled}
+                      size="large"
+                      type="primary"
+                      block
+                      className="!bg-gradient-to-r !from-cyan-500 !to-blue-600 !border-0 disabled:!from-gray-600 disabled:!to-gray-700"
+                    >
+                      {streamingEnabled ? 'Start Streaming' : 'Search IC Part Number First'}
+                    </Button>
+                  )}
                 </Space>
               </div>
             </Card>
@@ -262,68 +505,142 @@ export default function ScanPage() {
                 {/* Loading State */}
                 {isSearching && (
                   <div className="space-y-3 py-4">
-                    {/* Checking Models Animation */}
+                    {/* Step 1: Database Search */}
                     <div className="flex items-center gap-3 text-cyan-400">
                       <div className="w-5 h-5 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
                       <span className="text-sm font-medium">Searching database...</span>
                     </div>
-                    
-                    {loadingStep >= 1 && (
-                      <div className="flex items-center gap-3 text-blue-400 animate-fade-in">
-                        <div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
-                        <span className="text-sm font-medium">Loading 3D models...</span>
+
+                    {loadingStep >= 2 && (
+                      <div className="flex items-center gap-3 text-orange-400 animate-fade-in">
+                        <div className="w-5 h-5 border-2 border-orange-400 border-t-transparent rounded-full animate-spin"></div>
+                        <span className="text-sm font-medium">Scraping datasheets...</span>
                       </div>
                     )}
-                    
-                    {loadingStep >= 2 && (
+
+                    {loadingStep >= 3 && (
                       <div className="flex items-center gap-3 text-purple-400 animate-fade-in">
                         <div className="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin"></div>
-                        <span className="text-sm font-medium">Verifying specifications...</span>
+                        <span className="text-sm font-medium">Extracting with AI...</span>
                       </div>
                     )}
                   </div>
                 )}
 
+                {/* Web Scraping Confirmation Dialog */}
+                {showScrapingConfirmation && !isScraping && (
+                  <div className="space-y-4 py-4 animate-fade-in">
+                    <div className="p-4 bg-orange-500/10 border border-orange-500/30 rounded-lg">
+                      <div className="flex items-start gap-3 mb-3">
+                        <CloseCircleOutlined className="text-xl text-orange-400 mt-1" />
+                        <div className="flex-1">
+                          <h4 className="text-orange-400 font-semibold mb-2">IC not found in local database</h4>
+                          <p className="text-gray-300 text-sm mb-1">
+                            Part number <span className="font-mono text-white">"{pendingPartNumber}"</span> is not available in our local database.
+                          </p>
+                          <p className="text-gray-400 text-sm">
+                            Do you want to scrape the web for this part?
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex gap-3 mt-4">
+                        <Button
+                          type="primary"
+                          icon={<CheckCircleOutlined />}
+                          onClick={handleStartWebScraping}
+                          className="!bg-gradient-to-r !from-orange-500 !to-orange-600 !border-0 flex-1"
+                        >
+                          Start Web Scraping
+                        </Button>
+                        <Button
+                          onClick={handleCancelScraping}
+                          className="!bg-white/10 !border-white/20 !text-white hover:!bg-white/20"
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Web Scraping Progress */}
+                {isScraping && (
+                  <div className="space-y-4 py-4 animate-fade-in">
+                    <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-6 h-6 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+                        <h4 className="text-blue-400 font-semibold">
+                          System is scraping the part number from web...
+                        </h4>
+                      </div>
+
+                      <div className="space-y-3">
+                        {/* Step 1 */}
+                        <div className={`flex items-center gap-3 ${loadingStep >= 1 ? 'text-cyan-400' : 'text-gray-600'}`}>
+                          {loadingStep >= 1 ? (
+                            <CheckCircleOutlined className="text-lg" />
+                          ) : (
+                            <div className="w-4 h-4 rounded-full border-2 border-gray-600"></div>
+                          )}
+                          <span className="text-sm">Searching database</span>
+                        </div>
+
+                        {/* Step 2 */}
+                        <div className={`flex items-center gap-3 ${loadingStep >= 2 ? 'text-orange-400' : 'text-gray-600'}`}>
+                          {loadingStep > 2 ? (
+                            <CheckCircleOutlined className="text-lg" />
+                          ) : loadingStep === 2 ? (
+                            <div className="w-4 h-4 border-2 border-orange-400 border-t-transparent rounded-full animate-spin"></div>
+                          ) : (
+                            <div className="w-4 h-4 rounded-full border-2 border-gray-600"></div>
+                          )}
+                          <span className="text-sm">Scraping datasheets from web</span>
+                        </div>
+
+                        {/* Step 3 */}
+                        <div className={`flex items-center gap-3 ${loadingStep >= 3 ? 'text-purple-400' : 'text-gray-600'}`}>
+                          {loadingStep > 3 ? (
+                            <CheckCircleOutlined className="text-lg" />
+                          ) : loadingStep === 3 ? (
+                            <div className="w-4 h-4 border-2 border-purple-400 border-t-transparent rounded-full animate-spin"></div>
+                          ) : (
+                            <div className="w-4 h-4 rounded-full border-2 border-gray-600"></div>
+                          )}
+                          <span className="text-sm">Extracting data with AI</span>
+                        </div>
+                      </div>
+
+                      <p className="text-gray-400 text-xs mt-4">
+                        This may take 10-30 seconds...
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 {/* Search Result */}
-                {searchResult && !isSearching && (
+                {searchResult && !isSearching && !isScraping && (
                   <div className="space-y-4 animate-fade-in">
                     {searchResult.found ? (
                       <>
-                        {/* Part Found */}
+                        {/* Simple Success Message */}
                         <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
-                          <div className="flex items-center gap-2 text-green-400 mb-3">
-                            <CheckCircleOutlined className="text-xl" />
-                            <span className="font-semibold">Part Found</span>
-                          </div>
-                          <div className="space-y-2 text-sm">
-                            <div className="flex justify-between">
-                              <span className="text-gray-400">Part Number:</span>
-                              <span className="text-white font-mono">{searchResult.partNumber}</span>
+                          <div className="flex items-center gap-3 text-green-400">
+                            <CheckCircleOutlined className="text-2xl" />
+                            <div>
+                              <h4 className="font-semibold text-lg">
+                                {searchResult.isAutoScraped ? 'IC Found from Web Scraping' : 'IC Found in Local Database'}
+                              </h4>
+                              <p className="text-sm text-gray-300 mt-1">
+                                Part number: <span className="font-mono text-white">{searchResult.partNumber}</span>
+                              </p>
                             </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-400">Description:</span>
-                              <span className="text-white">{searchResult.description}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-400">Manufacturer:</span>
-                              <span className="text-white">{searchResult.manufacturer}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-400">Status:</span>
-                              <Tag color="success">{searchResult.status}</Tag>
-                            </div>
+                            {searchResult.isAutoScraped && (
+                              <Tag color="orange" className="ml-auto">
+                                Auto-scraped
+                              </Tag>
+                            )}
                           </div>
                         </div>
-                        <Button
-                          type="primary"
-                          block
-                          icon={<CameraOutlined />}
-                          onClick={captureImage}
-                          loading={isCapturing}
-                          className="bg-gradient-to-r from-green-500 to-green-600 border-0 hover:from-green-600 hover:to-green-700"
-                        >
-                          Capture & Verify IC
-                        </Button>
                       </>
                     ) : (
                       <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
@@ -332,8 +649,13 @@ export default function ScanPage() {
                           <span className="font-semibold">Part Not Found</span>
                         </div>
                         <p className="text-gray-400 text-sm">
-                          No matching part found for "{partNumber}". Please check the part number and try again.
+                          No matching part found for "{partNumber}". The part was not found in the database or available datasheets.
                         </p>
+                        {searchResult.error && (
+                          <p className="text-red-400 text-xs mt-2">
+                            Error: {searchResult.error}
+                          </p>
+                        )}
                       </div>
                     )}
                   </div>
