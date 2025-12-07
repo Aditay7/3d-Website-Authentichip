@@ -18,6 +18,12 @@ export default function ScanPage() {
   const [isCapturing, setIsCapturing] = useState(false);
   const [streamKey, setStreamKey] = useState(Date.now());
 
+  // Part number search states
+  const [partNumber, setPartNumber] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResult, setSearchResult] = useState(null);
+  const [loadingStep, setLoadingStep] = useState(0);
+
   // API endpoints
   const STREAM_URL = 'http://192.168.12.106:5500';
   const SNAPSHOT_URL = 'http://192.168.12.106:5500/snapshot';
@@ -87,6 +93,45 @@ export default function ScanPage() {
   const refreshStream = () => {
     setStreamKey(Date.now());
     message.info('Stream refreshed');
+  };
+
+  const handlePartNumberChange = (value) => {
+    setPartNumber(value);
+    if (value.length > 3) { // Start search after a few characters
+      setIsSearching(true);
+      setSearchResult(null);
+      setLoadingStep(0);
+
+      // Simulate search steps
+      setTimeout(() => setLoadingStep(1), 500);
+      setTimeout(() => setLoadingStep(2), 1500);
+
+      setTimeout(() => {
+        const found = Math.random() > 0.5; // Simulate success/failure
+        if (found) {
+          setSearchResult({
+            found: true,
+            partNumber: value,
+            description: 'High-performance Microcontroller',
+            manufacturer: 'Acme Corp',
+            status: 'Active',
+          });
+          message.success(`Part "${value}" found!`);
+        } else {
+          setSearchResult({
+            found: false,
+            partNumber: value,
+          });
+          message.error(`Part "${value}" not found.`);
+        }
+        setIsSearching(false);
+        setLoadingStep(0);
+      }, 3000);
+    } else {
+      setIsSearching(false);
+      setSearchResult(null);
+      setLoadingStep(0);
+    }
   };
 
   useEffect(() => {
@@ -161,17 +206,6 @@ export default function ScanPage() {
               <div className="p-4 border-t border-white/10">
                 <Space size="middle" wrap>
                   <Button
-                    type="primary"
-                    icon={<CameraOutlined />}
-                    onClick={captureImage}
-                    loading={isCapturing}
-                    className="bg-gradient-to-r from-green-500 to-green-600 border-0 hover:from-green-600 hover:to-green-700"
-                    size="large"
-                  >
-                    Capture Frame
-                  </Button>
-
-                  <Button
                     icon={<ReloadOutlined />}
                     onClick={refreshStream}
                     size="large"
@@ -193,15 +227,136 @@ export default function ScanPage() {
             </Card>
           </div>
 
-          {/* Captured Frame & Results Section */}
+          {/* Part Number Search & Results Section */}
           <div className="space-y-6">
-            {/* Captured Frame */}
+            {/* Part Number Search */}
             <Card
-              title={<span className="text-white font-semibold">Captured Frame</span>}
+              title={<span className="text-white font-semibold">Find by Part Number</span>}
               className="!bg-white/5 !border-white/10 backdrop-blur-md"
               headStyle={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}
             >
-              {capturedImage ? (
+              <div className="space-y-4">
+                {/* Search Input */}
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Enter part number (e.g., IC-2024-001)"
+                    value={partNumber}
+                    onChange={(e) => handlePartNumberChange(e.target.value)}
+                    className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all"
+                  />
+                  {partNumber && (
+                    <button
+                      onClick={() => {
+                        setPartNumber('');
+                        setIsSearching(false);
+                        setSearchResult(null);
+                      }}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                    >
+                      <CloseCircleOutlined />
+                    </button>
+                  )}
+                </div>
+
+                {/* Loading State */}
+                {isSearching && (
+                  <div className="space-y-3 py-4">
+                    {/* Checking Models Animation */}
+                    <div className="flex items-center gap-3 text-cyan-400">
+                      <div className="w-5 h-5 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
+                      <span className="text-sm font-medium">Searching database...</span>
+                    </div>
+                    
+                    {loadingStep >= 1 && (
+                      <div className="flex items-center gap-3 text-blue-400 animate-fade-in">
+                        <div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+                        <span className="text-sm font-medium">Loading 3D models...</span>
+                      </div>
+                    )}
+                    
+                    {loadingStep >= 2 && (
+                      <div className="flex items-center gap-3 text-purple-400 animate-fade-in">
+                        <div className="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin"></div>
+                        <span className="text-sm font-medium">Verifying specifications...</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Search Result */}
+                {searchResult && !isSearching && (
+                  <div className="space-y-4 animate-fade-in">
+                    {searchResult.found ? (
+                      <>
+                        {/* Part Found */}
+                        <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
+                          <div className="flex items-center gap-2 text-green-400 mb-3">
+                            <CheckCircleOutlined className="text-xl" />
+                            <span className="font-semibold">Part Found</span>
+                          </div>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-gray-400">Part Number:</span>
+                              <span className="text-white font-mono">{searchResult.partNumber}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-400">Description:</span>
+                              <span className="text-white">{searchResult.description}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-400">Manufacturer:</span>
+                              <span className="text-white">{searchResult.manufacturer}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-400">Status:</span>
+                              <Tag color="success">{searchResult.status}</Tag>
+                            </div>
+                          </div>
+                        </div>
+                        <Button
+                          type="primary"
+                          block
+                          icon={<CameraOutlined />}
+                          onClick={captureImage}
+                          loading={isCapturing}
+                          className="bg-gradient-to-r from-green-500 to-green-600 border-0 hover:from-green-600 hover:to-green-700"
+                        >
+                          Capture & Verify IC
+                        </Button>
+                      </>
+                    ) : (
+                      <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+                        <div className="flex items-center gap-2 text-red-400 mb-2">
+                          <CloseCircleOutlined className="text-xl" />
+                          <span className="font-semibold">Part Not Found</span>
+                        </div>
+                        <p className="text-gray-400 text-sm">
+                          No matching part found for "{partNumber}". Please check the part number and try again.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Help Text */}
+                {!partNumber && !isSearching && !searchResult && (
+                  <div className="text-center py-6 text-gray-400">
+                    <CheckCircleOutlined className="text-3xl mb-2 opacity-50" />
+                    <p className="text-sm">Enter a part number to search</p>
+                    <p className="text-xs text-gray-500 mt-1">Format: IC-YYYY-XXX</p>
+                  </div>
+                )}
+              </div>
+            </Card>
+
+            {/* Captured Frame */}
+            {capturedImage && (
+              <Card
+                title={<span className="text-white font-semibold">Captured Frame</span>}
+                className="!bg-white/5 !border-white/10 backdrop-blur-md"
+                headStyle={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}
+              >
                 <div className="space-y-4">
                   <img
                     src={capturedImage}
@@ -226,14 +381,8 @@ export default function ScanPage() {
                     </Button>
                   </Space>
                 </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center py-8 text-gray-400">
-                  <CameraOutlined className="text-4xl mb-2" />
-                  <p className="text-sm">No frame captured yet</p>
-                  <p className="text-xs text-gray-500 mt-1">Click "Capture Frame" to start</p>
-                </div>
-              )}
-            </Card>
+              </Card>
+            )}
 
             {/* Scan Results */}
             {scanResult && (
@@ -275,36 +424,6 @@ export default function ScanPage() {
                 </div>
               </Card>
             )}
-
-            {/* Stream Info */}
-            <Card
-              title={<span className="text-white font-semibold">Stream Info</span>}
-              className="!bg-white/5 !border-white/10 backdrop-blur-md"
-              headStyle={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}
-            >
-              <div className="space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Status:</span>
-                  <Tag color="success">Live</Tag>
-                </div>
-                <div className="flex justify-between items-start">
-                  <span className="text-gray-400">Stream URL:</span>
-                  <span className="text-gray-300 text-xs text-right break-all max-w-[150px]">
-                    {STREAM_URL}
-                  </span>
-                </div>
-                <div className="flex justify-between items-start">
-                  <span className="text-gray-400">Snapshot URL:</span>
-                  <span className="text-gray-300 text-xs text-right break-all max-w-[150px]">
-                    {SNAPSHOT_URL}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Protocol:</span>
-                  <span className="text-gray-300">HTTP/iframe</span>
-                </div>
-              </div>
-            </Card>
           </div>
         </div>
       </div>
