@@ -28,7 +28,8 @@
 	}
 
 	/* Ensure no horizontal scroll */
-	body, html {
+	body,
+	html {
 		max-width: 100vw;
 		overflow-x: hidden;
 	}
@@ -93,7 +94,7 @@
 	.responsive-container {
 		max-width: calc(1280px - 40px);
 	}
-	
+
 	.max-w-7xl {
 		max-width: calc(1280px - 20px);
 	}
@@ -192,6 +193,25 @@ input[type="range"]::-moz-range-thumb {
 			transform: translateY(0px);
 		}
 	}
+}
+
+/* Slower pulse animation for larger card glows */
+@keyframes pulse-slow {
+	0% {
+		opacity: 0.2;
+		transform: scale(1);
+	}
+	50% {
+		opacity: 0.45;
+		transform: scale(1.005);
+	}
+	100% {
+		opacity: 0.2;
+		transform: scale(1);
+	}
+}
+.animate-pulse-slow {
+	animation: pulse-slow 6.5s ease-in-out infinite !important;
 }
 
 /* Admin batch table: darker text for better readability on white cards */
