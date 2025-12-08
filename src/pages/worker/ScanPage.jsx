@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Navbar from '../../components/layout/Navbar';
 import { Card, Button, Tag, Space, message } from 'antd';
 import {
@@ -9,6 +9,7 @@ import {
   CloseCircleOutlined,
   DownloadOutlined,
   ReloadOutlined,
+  UploadOutlined,
 } from '@ant-design/icons';
 
 export default function ScanPage() {
@@ -33,38 +34,211 @@ export default function ScanPage() {
   const [pendingPartNumber, setPendingPartNumber] = useState('');
   const [isScraping, setIsScraping] = useState(false);
 
+  // Backend scan workflow states
+  const [scanId, setScanId] = useState(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [originalImagePath, setOriginalImagePath] = useState(null);
+  const [croppedImagePath, setCroppedImagePath] = useState(null);
+  const [workflowStep, setWorkflowStep] = useState('initial'); // 'initial', 'capturing', 'captured', 'processing', 'complete'
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef(null);
+
   // API endpoints
+  const BACKEND_API_URL = 'http://localhost:8000/api/v1';
+  const UPLOADS_URL = 'http://localhost:8000/uploads';
+  const STREAM_URL = 'http://172.17.18.197:5500/video_feed';
+  const SNAPSHOT_URL = 'http://172.17.18.197:5500/snapshot';
 
-  const STREAM_URL = 'http://10.106.241.16:5000/';
-  const SNAPSHOT_URL = 'http://10.106.241.16:5000/capture';
-
-  const captureImage = async () => {
+  // Backend API: Capture and Process workflow
+  const captureAndProcessImage = async () => {
     setIsCapturing(true);
+    setWorkflowStep('capturing');
+
     try {
-      const response = await fetch(SNAPSHOT_URL);
-      if (!response.ok) throw new Error('Failed to capture image');
+      // Step 1: Capture image from backend
+      message.info('📸 Capturing image from camera...');
 
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
+      const captureResponse = await fetch(`${BACKEND_API_URL}/scan/capture`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
-      setCapturedImage(url);
-      message.success('Frame captured successfully');
+      if (!captureResponse.ok) {
+        const errorData = await captureResponse.json();
+        throw new Error(errorData.detail || 'Capture failed');
+      }
 
-      // Simulate scan analysis
-      setTimeout(() => {
-        setScanResult({
-          status: Math.random() > 0.3 ? 'PASS' : 'FAIL',
-          confidence: (85 + Math.random() * 15).toFixed(1),
-          timestamp: new Date().toISOString(),
-        });
-      }, 1500);
+      const captureData = await captureResponse.json();
+      const newScanId = captureData.scan_id;
+      const originalPath = captureData.image_path;
+
+      setScanId(newScanId);
+      setOriginalImagePath(originalPath);
+      setWorkflowStep('captured');
+
+      message.success('✅ Image captured successfully!');
+
+      // Step 2: Process/crop the image
+      setIsProcessing(true);
+      setWorkflowStep('processing');
+      message.info('🔄 Processing image - detecting IC, rotating, and cropping...');
+
+      const processResponse = await fetch(`${BACKEND_API_URL}/scan/${newScanId}/process`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!processResponse.ok) {
+        const errorData = await processResponse.json();
+        throw new Error(errorData.detail || 'Processing failed');
+      }
+
+      const processData = await processResponse.json();
+      setCroppedImagePath(processData.cropped_image_path);
+      setWorkflowStep('complete');
+
+      message.success('✅ Image processed successfully!', 5);
+
+      // Simulate scan result for now
+      setScanResult({
+        status: Math.random() > 0.3 ? 'PASS' : 'FAIL',
+        confidence: (85 + Math.random() * 15).toFixed(1),
+        timestamp: new Date().toISOString(),
+        scanId: newScanId,
+      });
 
     } catch (error) {
-      console.error('Capture error:', error);
-      message.error('Error capturing image');
+      console.error('Scan workflow error:', error);
+      setWorkflowStep('initial');
+
+      // Specific error messages based on error type
+      if (error.message.includes('Cannot reach')) {
+        message.error('❌ Cannot reach camera. Please check if Raspberry Pi is online.', 5);
+      } else if (error.message.includes('timeout')) {
+        message.error('❌ Camera timeout. Please try again.', 5);
+      } else if (error.message.includes('No IC chip detected')) {
+        message.error('❌ No IC chip detected in image. Please reposition and try again.', 5);
+      } else {
+        message.error(`❌ Scan failed: ${error.message}`, 5);
+      }
     } finally {
       setIsCapturing(false);
+      setIsProcessing(false);
     }
+  };
+
+  // Upload and Process Image workflow
+  const uploadAndProcessImage = async (file) => {
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    if (!validTypes.includes(file.type)) {
+      message.error('❌ Please upload a valid image file (JPG, JPEG, or PNG)');
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+      message.error('❌ File size must be less than 10MB');
+      return;
+    }
+
+    setIsUploading(true);
+    setWorkflowStep('capturing');
+
+    try {
+      // Step 1: Upload image to backend
+      message.info('📤 Uploading image...');
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const uploadResponse = await fetch(`${BACKEND_API_URL}/scan/upload`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!uploadResponse.ok) {
+        const errorData = await uploadResponse.json();
+        throw new Error(errorData.detail || 'Upload failed');
+      }
+
+      const uploadData = await uploadResponse.json();
+      const newScanId = uploadData.scan_id;
+      const originalPath = uploadData.image_path;
+
+      setScanId(newScanId);
+      setOriginalImagePath(originalPath);
+      setWorkflowStep('captured');
+
+      message.success('✅ Image uploaded successfully!');
+
+      // Step 2: Process/crop the image
+      setIsProcessing(true);
+      setWorkflowStep('processing');
+      message.info('🔄 Processing image - detecting IC, rotating, and cropping...');
+
+      const processResponse = await fetch(`${BACKEND_API_URL}/scan/${newScanId}/process`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!processResponse.ok) {
+        const errorData = await processResponse.json();
+        throw new Error(errorData.detail || 'Processing failed');
+      }
+
+      const processData = await processResponse.json();
+      setCroppedImagePath(processData.cropped_image_path);
+      setWorkflowStep('complete');
+
+      message.success('✅ Image processed successfully!', 5);
+
+      // Simulate scan result
+      setScanResult({
+        status: Math.random() > 0.3 ? 'PASS' : 'FAIL',
+        confidence: (85 + Math.random() * 15).toFixed(1),
+        timestamp: new Date().toISOString(),
+        scanId: newScanId,
+      });
+
+    } catch (error) {
+      console.error('Upload workflow error:', error);
+      setWorkflowStep('initial');
+
+      // Specific error messages
+      if (error.message.includes('No IC chip detected')) {
+        message.error('❌ No IC chip detected in uploaded image. Please upload a different image.', 5);
+      } else {
+        message.error(`❌ Upload failed: ${error.message}`, 5);
+      }
+    } finally {
+      setIsUploading(false);
+      setIsProcessing(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleFileSelect = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      uploadAndProcessImage(file);
+    }
+  };
+
+  const triggerFileUpload = () => {
+    fileInputRef.current?.click();
   };
 
   const downloadImage = () => {
@@ -98,6 +272,11 @@ export default function ScanPage() {
     }
     setCapturedImage(null);
     setScanResult(null);
+    setScanId(null);
+    setOriginalImagePath(null);
+    setCroppedImagePath(null);
+    setWorkflowStep('initial');
+    message.info('Scan cleared. Ready for new capture.');
   };
 
   const refreshStream = () => {
@@ -350,6 +529,15 @@ export default function ScanPage() {
           <p className="text-gray-400 text-lg">Real-time video capture and IC authentication</p>
         </div>
 
+        {/* Hidden file input for image upload */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/jpg,image/png"
+          onChange={handleFileSelect}
+          style={{ display: 'none' }}
+        />
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Video Feed Section */}
           <div className="lg:col-span-2">
@@ -358,20 +546,20 @@ export default function ScanPage() {
               bodyStyle={{ padding: 0 }}
             >
               {/* Video Container */}
-              <div id="video-container" className="relative bg-black aspect-video">
+              <div
+                id="video-container"
+                className="relative bg-black overflow-hidden"
+                style={{ minHeight: '500px', height: '600px' }}
+              >
                 {streamingActive ? (
                   <>
                     {/* Live Stream via iframe */}
-                    <iframe
+                    <img
                       key={streamKey}
                       src={STREAM_URL}
-                      className="w-full h-full"
-                      style={{
-                        border: 'none',
-                        display: 'block',
-                      }}
-                      title="Live Camera Stream"
-                      allow="camera"
+                      alt="Live Camera Stream"
+                      className="absolute inset-0 w-full h-full object-contain"
+                      style={{ display: 'block' }}
                     />
 
                     {/* Overlay Status */}
@@ -434,13 +622,24 @@ export default function ScanPage() {
 
                       <Button
                         icon={<CameraOutlined />}
-                        onClick={captureImage}
-                        loading={isCapturing}
+                        onClick={captureAndProcessImage}
+                        loading={isCapturing || isProcessing}
                         size="large"
                         type="primary"
                         className="!bg-gradient-to-r !from-green-500 !to-green-600 !border-0"
                       >
-                        Capture & Scan
+                        {isCapturing ? 'Capturing...' : isProcessing ? 'Processing...' : 'Capture & Process'}
+                      </Button>
+
+                      <Button
+                        icon={<UploadOutlined />}
+                        onClick={triggerFileUpload}
+                        loading={isUploading || isProcessing}
+                        size="large"
+                        type="primary"
+                        className="!bg-gradient-to-r !from-blue-500 !to-blue-600 !border-0"
+                      >
+                        {isUploading ? 'Uploading...' : isProcessing ? 'Processing...' : 'Upload Image'}
                       </Button>
 
                       <Button
@@ -672,36 +871,159 @@ export default function ScanPage() {
               </div>
             </Card>
 
-            {/* Captured Frame */}
-            {capturedImage && (
+            {/* Scan Workflow Results */}
+            {(workflowStep !== 'initial' || originalImagePath || croppedImagePath) && (
               <Card
-                title={<span className="text-white font-semibold">Captured Frame</span>}
+                title={<span className="text-white font-semibold">Scan Workflow</span>}
                 className="!bg-white/5 !border-white/10 backdrop-blur-md"
                 headStyle={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}
               >
                 <div className="space-y-4">
-                  <img
-                    src={capturedImage}
-                    alt="Captured Frame"
-                    className="w-full rounded-lg border border-cyan-400/30"
-                  />
-                  <Space direction="vertical" className="w-full">
-                    <Button
-                      block
-                      icon={<DownloadOutlined />}
-                      onClick={downloadImage}
-                      className="!bg-cyan-600 !border-cyan-600 !text-white hover:!bg-cyan-500"
-                    >
-                      Download Image
-                    </Button>
-                    <Button
-                      block
-                      onClick={resetScan}
-                      className="!bg-white/10 !border-white/20 !text-white hover:!bg-white/20"
-                    >
-                      Clear & Capture New
-                    </Button>
-                  </Space>
+                  {/* Workflow Status */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3">
+                      {workflowStep === 'capturing' && (
+                        <>
+                          <div className="w-5 h-5 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
+                          <span className="text-cyan-400 font-medium">📸 Capturing image...</span>
+                        </>
+                      )}
+                      {workflowStep === 'captured' && (
+                        <>
+                          <CheckCircleOutlined className="text-green-400 text-xl" />
+                          <span className="text-green-400 font-medium">✅ Image captured!</span>
+                        </>
+                      )}
+                      {workflowStep === 'processing' && (
+                        <>
+                          <div className="w-5 h-5 border-2 border-orange-400 border-t-transparent rounded-full animate-spin"></div>
+                          <span className="text-orange-400 font-medium">🔄 Processing image...</span>
+                        </>
+                      )}
+                      {workflowStep === 'complete' && (
+                        <>
+                          <CheckCircleOutlined className="text-green-400 text-xl" />
+                          <span className="text-green-400 font-medium">✅ Complete!</span>
+                        </>
+                      )}
+                    </div>
+
+                    {scanId && (
+                      <div className="text-xs text-gray-400">
+                        Scan ID: <code className="text-cyan-400 bg-white/5 px-2 py-1 rounded">{scanId}</code>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Side-by-side Image Comparison */}
+                  {workflowStep === 'complete' && originalImagePath && croppedImagePath && (
+                    <div className="space-y-4">
+                      <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
+                        <div className="flex items-center gap-2 text-green-400 mb-2">
+                          <CheckCircleOutlined className="text-xl" />
+                          <span className="font-semibold">Image processed successfully!</span>
+                        </div>
+                        <p className="text-gray-300 text-sm">
+                          IC detected, rotated, and cropped automatically
+                        </p>
+                      </div>
+
+                      {/* Image Comparison Grid */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Original Image */}
+                        <div className="space-y-2">
+                          <h4 className="text-gray-300 font-semibold text-sm">Original Image</h4>
+                          <div className="relative group">
+                            <img
+                              src={`${UPLOADS_URL}/${originalImagePath}`}
+                              alt="Original IC"
+                              className="w-full rounded-lg border-2 border-white/20 hover:border-cyan-400/50 transition-all"
+                              onError={(e) => {
+                                e.target.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"/>';
+                                e.target.alt = 'Image not found';
+                              }}
+                            />
+                            <p className="text-xs text-gray-400 mt-1">Captured from camera</p>
+                          </div>
+                        </div>
+
+                        {/* Arrow indicator (hidden on mobile) */}
+                        <div className="hidden md:flex items-center justify-center absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
+                          <div className="text-4xl text-cyan-400">→</div>
+                        </div>
+
+                        {/* Cropped Image */}
+                        <div className="space-y-2">
+                          <h4 className="text-green-400 font-semibold text-sm">Processed Image</h4>
+                          <div className="relative group">
+                            <img
+                              src={`${UPLOADS_URL}/${croppedImagePath}`}
+                              alt="Cropped IC"
+                              className="w-full rounded-lg border-2 border-green-400/50 hover:border-green-400 transition-all shadow-lg shadow-green-400/20"
+                              onError={(e) => {
+                                e.target.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"/>';
+                                e.target.alt = 'Image not found';
+                              }}
+                            />
+                            <p className="text-xs text-green-400 mt-1">✨ Detected, rotated & cropped</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="grid grid-cols-2 gap-3 pt-2">
+                        <Button
+                          icon={<DownloadOutlined />}
+                          onClick={() => {
+                            const a = document.createElement('a');
+                            a.href = `${UPLOADS_URL}/${croppedImagePath}`;
+                            a.download = `cropped_${scanId}.jpg`;
+                            a.click();
+                            message.success('Cropped image downloaded');
+                          }}
+                          className="!bg-cyan-600 !border-cyan-600 !text-white hover:!bg-cyan-500"
+                        >
+                          Download Cropped
+                        </Button>
+                        <Button
+                          icon={<ReloadOutlined />}
+                          onClick={resetScan}
+                          className="!bg-white/10 !border-white/20 !text-white hover:!bg-white/20"
+                        >
+                          New Scan
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Show loading state for processing */}
+                  {workflowStep === 'processing' && (
+                    <div className="p-6 bg-blue-500/10 border border-blue-500/30 rounded-lg text-center">
+                      <div className="w-12 h-12 border-4 border-blue-400 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+                      <p className="text-blue-400 font-medium mb-1">Processing image...</p>
+                      <p className="text-gray-400 text-sm">Detecting IC chip, rotating, and cropping...</p>
+                    </div>
+                  )}
+
+                  {/* Show original image only when captured but not yet processed */}
+                  {workflowStep === 'captured' && originalImagePath && !croppedImagePath && (
+                    <div className="space-y-3">
+                      <div className="p-4 bg-cyan-500/10 border border-cyan-500/30 rounded-lg">
+                        <p className="text-cyan-400 text-sm">
+                          Image captured! Processing will start automatically...
+                        </p>
+                      </div>
+                      <img
+                        src={`${UPLOADS_URL}/${originalImagePath}`}
+                        alt="Captured IC"
+                        className="w-full rounded-lg border-2 border-cyan-400/30"
+                        onError={(e) => {
+                          e.target.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"/>';
+                          e.target.alt = 'Image not found';
+                        }}
+                      />
+                    </div>
+                  )}
                 </div>
               </Card>
             )}
