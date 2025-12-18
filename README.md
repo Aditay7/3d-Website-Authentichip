@@ -1,5 +1,5 @@
 ## 🌟 Overview
-This project was developed for the **Smart India Hackathon 2025**. It is an immersive, 3D-powered web application built to detect counterfiet ICs. 
+This project was developed for the **Smart India Hackathon 2025 Grand Finale**. It is an immersive, 3D-powered web application built to detect counterfiet ICs. 
 
 By combining the power of **React** for UI and **Three.js** for high-performance 3D rendering, we have created a solution that is both functional and visually engaging.
 
