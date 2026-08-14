@@ -1,404 +1,289 @@
-import { useState, useEffect } from 'react';
+import { useRef, useState } from "react";
+import { motion, useInView, AnimatePresence } from "framer-motion";
+
+const steps = [
+  {
+    n: "01",
+    title: "Component Capture",
+    subtitle: "Precision Imaging",
+    desc: "The IC is placed in the inspection rig. High-resolution cameras capture multiple angles under controlled LED lighting, producing crisp images of every marking, logo, and surface texture.",
+    details: ["Multi-angle capture", "LED lighting control", "4K resolution", "Auto-focus calibration"],
+    accent: "#06B6D4",
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+      </svg>
+    ),
+  },
+  {
+    n: "02",
+    title: "AI Analysis",
+    subtitle: "OCR + GAN Scoring",
+    desc: "A fine-tuned OCR model extracts text from the IC surface — part numbers, date codes, logos. Simultaneously, a GAN-based authenticity model scores the visual pattern against OEM-trained baselines.",
+    details: ["Fine-tuned OCR", "GAN pattern scoring", "Anomaly detection", "Confidence metrics"],
+    accent: "#8B5CF6",
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+      </svg>
+    ),
+  },
+  {
+    n: "03",
+    title: "Datasheet Matching",
+    subtitle: "Rules Engine",
+    desc: "Extracted data is cross-referenced against OEM datasheets and known-good samples. A multi-rule validation engine checks part numbers, manufacturer logos, date code ranges, and spatial layouts.",
+    details: ["OEM datasheet DB", "Part number validation", "Logo verification", "Layout analysis"],
+    accent: "#EC4899",
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+    ),
+  },
+  {
+    n: "04",
+    title: "Cryptographic Passport",
+    subtitle: "Immutable Certification",
+    desc: "Verified components receive a cryptographic digital passport — a hash-linked, tamper-evident record stored in an immutable audit ledger. Any party can verify authenticity at any point in the supply chain.",
+    details: ["SHA-256 hash chain", "Immutable ledger", "Verification API", "Full audit history"],
+    accent: "#10B981",
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+      </svg>
+    ),
+  },
+];
 
 export default function HowItWorksSection() {
-    const [activeStep, setActiveStep] = useState(0);
-    const [progress, setProgress] = useState(0);
-    const [isPlaying, setIsPlaying] = useState(true);
-    const [hoveredStep, setHoveredStep] = useState(null);
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-80px" });
+  const [active, setActive] = useState(0);
 
-    const steps = [
-        {
-            number: "01",
-            title: "Component Capture",
-            subtitle: "Edge Device Processing",
-            description: "High-resolution cameras capture component images with precision optics. Edge devices perform initial preprocessing including perspective correction, denoising, and quality checks.",
-            details: [
-                { icon: "📸", text: "Multi-angle capture", color: "text-cyan-400" },
-                { icon: "🔧", text: "Perspective correction", color: "text-blue-400" },
-                { icon: "✨", text: "Image enhancement", color: "text-purple-400" },
-                { icon: "⚡", text: "Edge preprocessing", color: "text-green-400" }
-            ],
-            icon: "📷",
-            bgGradient: "bg-gradient-to-br from-cyan-500/20 via-blue-500/15 to-cyan-400/10",
-            borderColor: "border-cyan-400/30",
-            glowColor: "shadow-cyan-500/25"
-        },
-        {
-            number: "02", 
-            title: "AI Analysis Pipeline",
-            subtitle: "ML Inference & OCR",
-            description: "Advanced OCR extracts component markings while anomaly detection models analyze surface patterns. GAN-based authenticity scoring provides confidence metrics.",
-            details: [
-                { icon: "🔤", text: "OCR text extraction", color: "text-blue-400" },
-                { icon: "🧠", text: "Anomaly detection", color: "text-purple-400" },
-                { icon: "📊", text: "GAN authenticity scoring", color: "text-pink-400" },
-                { icon: "📋", text: "Confidence analysis", color: "text-indigo-400" }
-            ],
-            icon: "🤖",
-            bgGradient: "bg-gradient-to-br from-blue-500/20 via-purple-500/15 to-blue-400/10",
-            borderColor: "border-blue-400/30",
-            glowColor: "shadow-blue-500/25"
-        },
-        {
-            number: "03",
-            title: "Datasheet Comparison", 
-            subtitle: "Rules Engine Processing",
-            description: "Extracted data is compared against OEM datasheet patterns. Multi-rule engine validates part numbers, date codes, logos, and spatial layouts for authenticity verification.",
-            details: [
-                { icon: "📑", text: "Datasheet matching", color: "text-purple-400" },
-                { icon: "✅", text: "Pattern validation", color: "text-green-400" },
-                { icon: "🎯", text: "Logo verification", color: "text-pink-400" },
-                { icon: "📐", text: "Layout analysis", color: "text-yellow-400" }
-            ],
-            icon: "📊", 
-            bgGradient: "bg-gradient-to-br from-purple-500/20 via-pink-500/15 to-purple-400/10",
-            borderColor: "border-purple-400/30",
-            glowColor: "shadow-purple-500/25"
-        },
-        {
-            number: "04",
-            title: "Cryptographic Passport",
-            subtitle: "Immutable Provenance",
-            description: "Generate cryptographic hash from scan metadata and store in immutable ledger. Creates verifiable component passport with complete audit trail.",
-            details: [
-                { icon: "🔐", text: "Hash generation", color: "text-pink-400" },
-                { icon: "⛓️", text: "Ledger storage", color: "text-red-400" },
-                { icon: "🎫", text: "Digital passport", color: "text-orange-400" },
-                { icon: "📜", text: "Audit trail", color: "text-yellow-400" }
-            ],
-            icon: "🛡️",
-            bgGradient: "bg-gradient-to-br from-pink-500/20 via-red-500/15 to-pink-400/10",
-            borderColor: "border-pink-400/30",
-            glowColor: "shadow-pink-500/25"
-        },
-        {
-            number: "05",
-            title: "Decision & Reporting",
-            subtitle: "Results & Actions", 
-            description: "System provides clear Green/Yellow/Red decisions with detailed reports. Workers can annotate, escalate, or approve components with full traceability.",
-            details: [
-                { icon: "🚦", text: "Decision indicators", color: "text-red-400" },
-                { icon: "📊", text: "Detailed reports", color: "text-orange-400" },
-                { icon: "👤", text: "Human-in-loop review", color: "text-yellow-400" },
-                { icon: "✍️", text: "Annotation system", color: "text-green-400" }
-            ],
-            icon: "📋",
-            bgGradient: "bg-gradient-to-br from-red-500/20 via-orange-500/15 to-red-400/10",
-            borderColor: "border-red-400/30",
-            glowColor: "shadow-red-500/25"
+  return (
+    <section
+      id="howitworks"
+      ref={ref}
+      style={{
+        position: "relative", zIndex: 10,
+        padding: "7rem 2rem",
+        scrollMarginTop: 64,
+      }}
+    >
+      <div style={{
+        position: "absolute", top: "30%", right: "-5%",
+        width: 400, height: 400,
+        background: "radial-gradient(ellipse, rgba(139,92,246,0.07), transparent 70%)",
+        pointerEvents: "none",
+      }} />
+
+      <div style={{ maxWidth: 1200, margin: "0 auto", position: "relative", zIndex: 1 }}>
+
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.7 }}
+          style={{ marginBottom: "4rem" }}
+        >
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: 7,
+            padding: "5px 14px", borderRadius: 999, marginBottom: "1.2rem",
+            background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.28)",
+          }}>
+            <span style={{ fontFamily: "var(--font)", fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#8B5CF6" }}>
+              The Process
+            </span>
+          </div>
+          <h2 style={{
+            fontFamily: "var(--font)", fontWeight: 900,
+            fontSize: "clamp(2.2rem, 5vw, 4rem)",
+            letterSpacing: "-0.05em", lineHeight: 1.05,
+          }}>
+            <span style={{
+              background: "linear-gradient(135deg, #F0F6FF, #B0BDD6)",
+              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text",
+            }}>How It Would Work</span>
+          </h2>
+        </motion.div>
+
+        {/* Steps + Detail panel */}
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1.4fr",
+          gap: "2.5rem",
+          alignItems: "start",
+        }}
+          className="hiw-grid"
+        >
+          {/* Step list */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+            {steps.map((s, i) => {
+              const isAct = active === i;
+              return (
+                <motion.div
+                  key={s.n}
+                  initial={{ opacity: 0, x: -30 }}
+                  animate={inView ? { opacity: 1, x: 0 } : {}}
+                  transition={{ delay: 0.15 + i * 0.1, duration: 0.6 }}
+                  onClick={() => setActive(i)}
+                  style={{
+                    display: "flex", gap: "1.1rem",
+                    padding: "1.2rem 1.4rem",
+                    borderRadius: 14, cursor: "pointer",
+                    border: `1px solid ${isAct ? s.accent + "45" : "rgba(255,255,255,0.06)"}`,
+                    background: isAct ? `${s.accent}0A` : "rgba(255,255,255,0.01)",
+                    boxShadow: isAct ? `0 0 30px ${s.accent}18` : "none",
+                    transition: "all 0.3s ease",
+                  }}
+                >
+                  <div style={{
+                    minWidth: 44, height: 44, borderRadius: 10,
+                    background: isAct ? s.accent : "rgba(255,255,255,0.05)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    color: isAct ? "#fff" : "#6B7A99",
+                    fontFamily: "var(--font)", fontWeight: 800, fontSize: "0.82rem",
+                    transition: "all 0.3s ease", flexShrink: 0,
+                  }}>{s.n}</div>
+                  <div style={{ paddingTop: 2 }}>
+                    <div style={{
+                      fontFamily: "var(--font)", fontWeight: 700, fontSize: "0.92rem",
+                      color: isAct ? "#F0F6FF" : "#B0BDD6",
+                      transition: "color 0.3s ease", marginBottom: 2,
+                    }}>{s.title}</div>
+                    <div style={{
+                      fontFamily: "var(--font)", fontSize: "0.72rem",
+                      color: isAct ? s.accent : "#6B7A99",
+                      transition: "color 0.3s ease",
+                    }}>{s.subtitle}</div>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+
+          {/* Detail panel */}
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            animate={inView ? { opacity: 1, x: 0 } : {}}
+            transition={{ delay: 0.35, duration: 0.7 }}
+          >
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={active}
+                initial={{ opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -18 }}
+                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                className="glass"
+                style={{
+                  padding: "2.8rem 2.4rem",
+                  borderColor: `${steps[active].accent}25`,
+                  position: "relative",
+                  overflow: "hidden",
+                  minHeight: 340,
+                }}
+              >
+                {/* Glow */}
+                <div style={{
+                  position: "absolute", top: 0, right: 0,
+                  width: 200, height: 200,
+                  background: `radial-gradient(circle at top right, ${steps[active].accent}20, transparent 70%)`,
+                  pointerEvents: "none",
+                }} />
+                {/* Watermark number */}
+                <div style={{
+                  position: "absolute", top: "-1.5rem", right: "1.5rem",
+                  fontFamily: "var(--font)", fontWeight: 900, fontSize: "8rem",
+                  color: "rgba(255,255,255,0.025)", lineHeight: 1,
+                  userSelect: "none", pointerEvents: "none", letterSpacing: "-0.06em",
+                }}>{steps[active].n}</div>
+
+                <div style={{ position: "relative", zIndex: 1 }}>
+                  {/* Icon */}
+                  <div style={{
+                    width: 54, height: 54, borderRadius: 14,
+                    background: `${steps[active].accent}15`,
+                    border: `1px solid ${steps[active].accent}30`,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    color: steps[active].accent,
+                    marginBottom: "1.4rem",
+                  }}>{steps[active].icon}</div>
+
+                  {/* Badge */}
+                  <div style={{
+                    display: "inline-block",
+                    padding: "3px 12px", borderRadius: 999, marginBottom: "0.9rem",
+                    background: `${steps[active].accent}15`,
+                    border: `1px solid ${steps[active].accent}35`,
+                    fontFamily: "var(--font)", fontSize: "0.65rem",
+                    fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase",
+                    color: steps[active].accent,
+                  }}>{steps[active].subtitle}</div>
+
+                  <h3 style={{
+                    fontFamily: "var(--font)", fontWeight: 800,
+                    fontSize: "clamp(1.5rem, 3vw, 2.1rem)",
+                    letterSpacing: "-0.04em",
+                    background: `linear-gradient(135deg, ${steps[active].accent}, #F0F6FF)`,
+                    WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text",
+                    marginBottom: "1rem",
+                  }}>{steps[active].title}</h3>
+
+                  <p style={{
+                    fontFamily: "var(--font)", fontSize: "0.9rem",
+                    lineHeight: 1.75, color: "#6B7A99", marginBottom: "1.8rem",
+                  }}>{steps[active].desc}</p>
+
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+                    {steps[active].details.map(d => (
+                      <motion.span
+                        key={d}
+                        initial={{ opacity: 0, scale: 0.85 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        style={{
+                          padding: "5px 13px", borderRadius: 999,
+                          background: `${steps[active].accent}12`,
+                          border: `1px solid ${steps[active].accent}28`,
+                          fontFamily: "var(--font)", fontSize: "0.75rem",
+                          fontWeight: 600, color: steps[active].accent,
+                        }}
+                      >{d}</motion.span>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Progress dots */}
+            <div style={{ display: "flex", gap: "0.5rem", marginTop: "1.5rem", justifyContent: "center" }}>
+              {steps.map((s, i) => (
+                <button key={i} onClick={() => setActive(i)} style={{
+                  width: active === i ? 24 : 7, height: 7, borderRadius: 999,
+                  background: active === i ? s.accent : "rgba(255,255,255,0.15)",
+                  border: "none", cursor: "pointer",
+                  boxShadow: active === i ? `0 0 10px ${s.accent}80` : "none",
+                  transition: "all 0.3s ease",
+                }} />
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      </div>
+
+      <div style={{
+        position: "absolute", bottom: 0, left: 0, right: 0, height: 1,
+        background: "linear-gradient(90deg, transparent, rgba(139,92,246,0.3), transparent)",
+        pointerEvents: "none",
+      }} />
+
+      <style>{`
+        @media (max-width: 860px) {
+          .hiw-grid { grid-template-columns: 1fr !important; }
         }
-    ];
-
-    // Auto-play carousel logic - cycles through steps 0→1→2→3→4→0 (displayed as 1→2→3→4→5→1)
-    // Fixed: Separated state updates to prevent race conditions
-    useEffect(() => {
-        if (!isPlaying) return;
-
-        const stepDuration = 6700; // Total duration per step in ms (100ms * 67 intervals ≈ 100% progress)
-        const progressIncrement = 1.5; // Progress increment per interval
-        const intervalDuration = 100; // Interval duration in ms
-        
-        let startTime = Date.now();
-        let currentStepStart = startTime;
-
-        const interval = setInterval(() => {
-            const now = Date.now();
-            const elapsedInCurrentStep = now - currentStepStart;
-            
-            // Calculate progress percentage for current step
-            const newProgress = Math.min((elapsedInCurrentStep / stepDuration) * 100, 100);
-            
-            setProgress(newProgress);
-            
-            // When step duration is complete, advance to next step
-            if (elapsedInCurrentStep >= stepDuration) {
-                setActiveStep((currentStep) => {
-                    const nextStep = (currentStep + 1) % 5; // Cycle through 0,1,2,3,4
-                    return nextStep;
-                });
-                currentStepStart = now; // Reset timer for next step
-                setProgress(0);
-            }
-        }, intervalDuration);
-
-        return () => clearInterval(interval);
-    }, [isPlaying, activeStep]); // Added activeStep to dependencies to reset timer on manual changes
-
-    // Handle manual step click
-    const handleStepClick = (index) => {
-        setActiveStep(index);
-        setProgress(0);
-        setIsPlaying(false);
-        // Resume auto-play after 3 seconds
-        setTimeout(() => {
-            setIsPlaying(true);
-        }, 3000);
-    };
-
-    return (
-        <section id="how-it-works" className="min-h-screen py-12 relative z-20 pointer-events-none px-4 sm:px-6 lg:px-12" style={{ scrollMarginTop: '64px' }}>
-            {/* Enhanced gradient background */}
-            <div className="absolute inset-0 bg-gradient-to-b from-cyan-900/30 via-cyan-800/35 to-cyan-900/25 pointer-events-none" />
-            <div className="absolute inset-0 bg-gradient-to-r from-cyan-900/20 via-transparent to-cyan-900/20 pointer-events-none" />
-            
-            {/* Dynamic animated background */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute inset-0 opacity-20">
-                    {[...Array(20)].map((_, i) => (
-                        <div
-                            key={i}
-                            className="absolute w-px h-px bg-cyan-400 rounded-full animate-pulse"
-                            style={{
-                                left: `${Math.random() * 100}%`,
-                                top: `${Math.random() * 100}%`,
-                                animationDelay: `${Math.random() * 5}s`,
-                                animationDuration: `${3 + Math.random() * 2}s`
-                            }}
-                        />
-                    ))}
-                </div>
-                
-                {/* Flowing data streams */}
-                <svg className="absolute inset-0 w-full h-full">
-                    <defs>
-                        <linearGradient id="streamGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stopColor="rgba(34, 211, 238, 0)" />
-                            <stop offset="50%" stopColor="rgba(34, 211, 238, 0.15)" />
-                            <stop offset="100%" stopColor="rgba(34, 211, 238, 0)" />
-                        </linearGradient>
-                    </defs>
-                    {[...Array(4)].map((_, i) => (
-                        <path
-                            key={i}
-                            d={`M ${10 + i * 25}% 0% Q ${25 + i * 25}% 50% ${40 + i * 25}% 100%`}
-                            stroke="url(#streamGradient)"
-                            strokeWidth="1"
-                            fill="none"
-                            className="animate-pulse"
-                            style={{ 
-                                animationDelay: `${i * 1.5}s`,
-                                animationDuration: `${5 + Math.random()}s`
-                            }}
-                        />
-                    ))}
-                </svg>
-            </div>
-            
-            <div className="relative z-30 max-w-7xl mx-auto pointer-events-auto">
-                {/* Enhanced Header */}
-                <div className="text-center mb-12">
-                    <div className="relative inline-block mb-4">
-                        <span className="px-4 py-2 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-500/40 rounded-full text-cyan-300 text-xs font-bold tracking-wider uppercase backdrop-blur-sm">
-                            ✨ The Authentication Process
-                        </span>
-                        <div className="absolute inset-0 bg-gradient-to-r from-cyan-400/20 to-blue-400/20 rounded-full blur-sm -z-10"></div>
-                    </div>
-                    <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 leading-tight">
-                        <span className="text-white">How It Works</span>
-                        
-                    </h2>
-                    <p className="text-gray-300 text-base sm:text-lg max-w-3xl mx-auto leading-relaxed">
-                        End-to-end component authentication through five intelligent, interconnected steps
-                    </p>
-                </div>
-
-                
-
-                {/* Redesigned Steps - Responsive Grid Layout */}
-                <div className="w-full max-w-7xl mx-auto mb-12">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 py-4">
-                        {steps.map((step, index) => (
-                            <div
-                                key={index}
-                                className="relative group"
-                                onMouseEnter={() => setHoveredStep(index)}
-                                onMouseLeave={() => setHoveredStep(null)}
-                            >
-                                <button
-                                    onClick={() => handleStepClick(index)}
-                                    className={`w-full h-full p-3 rounded-2xl border transition-all duration-500 transform ${
-                                        activeStep === index
-                                            ? `${step.bgGradient} ${step.borderColor} scale-105 shadow-lg ${step.glowColor}`
-                                            : hoveredStep === index
-                                            ? 'bg-gray-800/40 border-gray-600/50 scale-102 shadow-md'
-                                            : 'bg-gray-900/20 border-gray-700/30 hover:bg-gray-800/30'
-                                    }`}
-                                >
-                                    {/* Step Icon */}
-                                    <div className={`text-3xl mb-2 transition-all duration-300 ${
-                                        activeStep === index ? 'scale-110' : 
-                                        hoveredStep === index ? 'scale-105' : ''
-                                    }`}>
-                                        {step.icon}
-                                    </div>
-                                    
-                                    {/* Step Number */}
-                                    <div className={`text-lg font-black mb-1 transition-all duration-300 ${
-                                        activeStep === index ? 'text-cyan-300' : 'text-gray-500'
-                                    }`}>
-                                        {step.number}
-                                    </div>
-                                    
-                                    {/* Step Title */}
-                                    <h3 className="text-white text-sm font-bold mb-1 leading-tight">
-                                        {step.title}
-                                    </h3>
-                                    
-                                    {/* Step Subtitle */}
-                                    <p className={`text-xs font-medium transition-all duration-300 ${
-                                        activeStep === index ? 'text-cyan-400' : 'text-gray-400'
-                                    }`}>
-                                        {step.subtitle}
-                                    </p>
-                                    
-                                    {/* Progress Bar */}
-                                    {activeStep === index && (
-                                        <div className="mt-4 w-full h-2 bg-gray-800/50 rounded-full overflow-hidden">
-                                            <div 
-                                                className="h-full bg-gradient-to-r from-cyan-400 to-blue-500 transition-all duration-100 rounded-full"
-                                                style={{ width: `${progress}%` }}
-                                            />
-                                        </div>
-                                    )}
-                                </button>
-                                
-                                {/* Glowing border for active step */}
-                                {activeStep === index && (
-                                    <div className={`absolute -inset-1 bg-gradient-to-r from-cyan-400/30 to-blue-400/30 rounded-3xl blur-lg animate-pulse -z-10`}></div>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Enhanced Active Step Details */}
-                <div className="relative max-w-5xl mx-auto mb-10">
-                    <div className={`${steps[activeStep].bgGradient} p-4 md:p-6 rounded-2xl border ${steps[activeStep].borderColor} backdrop-blur-sm shadow-lg ${steps[activeStep].glowColor} transition-all duration-500`}>
-                        <div className="grid md:grid-cols-4 gap-4 items-start">
-                            {/* Left: Icon and Number */}
-                            <div className="text-center md:text-left">
-                                <div className="text-4xl mb-2">
-                                    {steps[activeStep].icon}
-                                </div>
-                                <div className="text-4xl font-black text-white/10 leading-none">
-                                    {steps[activeStep].number}
-                                </div>
-                            </div>
-                            
-                            {/* Center: Content */}
-                            <div className="md:col-span-3">
-                                <div className="mb-4">
-                                    <h3 className="text-xl md:text-2xl font-bold text-white mb-2">
-                                        {steps[activeStep].title}
-                                    </h3>
-                                    <p className="text-cyan-300 text-sm font-semibold mb-3">
-                                        {steps[activeStep].subtitle}
-                                    </p>
-                                    <p className="text-gray-300 text-sm leading-relaxed">
-                                        {steps[activeStep].description}
-                                    </p>
-                                </div>
-                                
-                                {/* Enhanced Step Details */}
-                                <div className="grid grid-cols-2 gap-2">
-                                    {steps[activeStep].details.map((detail, i) => (
-                                        <div 
-                                            key={i} 
-                                            className="group bg-black/30 backdrop-blur-sm p-2 rounded-lg border border-white/10 hover:border-white/20 transition-all duration-300 hover:scale-102"
-                                        >
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-lg group-hover:scale-110 transition-transform duration-300">
-                                                    {detail.icon}
-                                                </span>
-                                                <span className={`font-medium text-xs ${detail.color} group-hover:text-white transition-colors duration-300`}>
-                                                    {detail.text}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    {/* Glowing background */}
-                    <div className={`absolute -inset-1 bg-gradient-to-r from-cyan-400/5 to-blue-400/5 rounded-2xl blur-lg -z-10`}></div>
-                </div>
-
-                {/* Enhanced Process Flow */}
-                <div className="flex justify-center items-center">
-                    <div className="flex items-center gap-2 overflow-x-auto pb-2 max-w-full">
-                        {steps.map((step, index) => (
-                            <div key={index} className="flex items-center shrink-0">
-                                <div 
-                                    className={`relative flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all duration-300 cursor-pointer ${
-                                        index <= activeStep 
-                                            ? 'bg-gradient-to-br from-cyan-400/30 to-blue-500/30 border-cyan-400 text-cyan-300 scale-105 shadow-md shadow-cyan-500/20' 
-                                            : 'bg-gray-800/50 border-gray-600 text-gray-500 hover:border-gray-500'
-                                    }`}
-                                    onClick={() => handleStepClick(index)}
-                                >
-                                    <span className="font-bold text-sm">{step.number}</span>
-                                </div>
-                                {index < steps.length - 1 && (
-                                    <div className="flex items-center">
-                                        <div className={`w-6 h-0.5 transition-all duration-300 ${
-                                            index < activeStep 
-                                                ? 'bg-gradient-to-r from-cyan-400 to-blue-500' 
-                                                : 'bg-gray-600'
-                                        }`} />
-                                        <div className={`w-1 h-1 rounded-full transition-all duration-300 ${
-                                            index < activeStep 
-                                                ? 'bg-cyan-400' 
-                                                : 'bg-gray-600'
-                                        }`} />
-                                    </div>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
-
-            {/* Enhanced Section Divider */}
-            <div className="absolute bottom-0 left-0 right-0">
-                <div className="h-1 bg-gradient-to-r from-transparent via-cyan-500/60 to-transparent"></div>
-                <div className="h-px bg-gradient-to-r from-transparent via-cyan-400/30 to-transparent"></div>
-            </div>
-
-            {/* Custom CSS for floating animation */}
-            <style jsx>{`
-                @keyframes float {
-                    0%, 100% { transform: translateY(0px); }
-                    50% { transform: translateY(-10px); }
-                }
-                .animate-float {
-                    animation: float 3s ease-in-out infinite;
-                }
-                /* Horizontal scroll container for steps */
-                .snap-x {
-                    scroll-behavior: smooth;
-                }
-                /* Enhanced scrollbar for step container */
-                .overflow-x-auto {
-                    scrollbar-width: thin;
-                    scrollbar-color: rgba(34, 211, 238, 0.4) rgba(17, 24, 39, 0.3);
-                }
-                .overflow-x-auto::-webkit-scrollbar {
-                    height: 8px;
-                }
-                .overflow-x-auto::-webkit-scrollbar-track {
-                    background: rgba(17, 24, 39, 0.3);
-                    border-radius: 4px;
-                }
-                .overflow-x-auto::-webkit-scrollbar-thumb {
-                    background: rgba(34, 211, 238, 0.4);
-                    border-radius: 4px;
-                }
-                .overflow-x-auto::-webkit-scrollbar-thumb:hover {
-                    background: rgba(34, 211, 238, 0.6);
-                }
-            `}</style>
-        </section>
-    );
+      `}</style>
+    </section>
+  );
 }

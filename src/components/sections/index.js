@@ -1,5 +1,7 @@
-export { default as Hero } from './Hero';
-export { default as HardwareSection } from './HardwareSection';
-export { default as ScanDemoSection } from './ScanDemoSection';
-export { default as HowItWorksSection } from './HowItWorksSection';
-export { default as AboutSection } from './AboutSection';
+export { default as HeroSection }       from "./HeroSection";
+export { default as ProblemSection }    from "./ProblemSection";
+export { default as SolutionSection }   from "./SolutionSection";
+export { default as HowItWorksSection } from "./HowItWorksSection";
+export { default as TechSection }       from "./TechSection";
+export { default as VisionSection }     from "./VisionSection";
+export { default as FooterSection }     from "./FooterSection";

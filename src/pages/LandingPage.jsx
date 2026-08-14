@@ -1,52 +1,52 @@
-import { useEffect, useState } from 'react';
-import { Navbar } from '../components/layout';
-import { 
-  Hero, 
-  HardwareSection, 
-  ScanDemoSection, 
-  HowItWorksSection, 
-  AboutSection 
-} from '../components/sections';
-import { HardwareModel3D } from '../components/3d';
+import { useEffect, useRef } from "react";
+import Lenis from "lenis";
+import Navbar from "../components/layout/Navbar";
+import {
+  HeroSection,
+  ProblemSection,
+  SolutionSection,
+  HowItWorksSection,
+  TechSection,
+  VisionSection,
+  FooterSection,
+} from "../components/sections";
 
 export default function LandingPage() {
-  const [scrollProgress, setScrollProgress] = useState(0);
+  const lenisRef = useRef(null);
 
   useEffect(() => {
-    const handleScroll = () => {
-      const heroHeight = window.innerHeight;
-      const maxScroll = heroHeight * 4; // Track through 4 sections (hero, hardware, scan demo, how it works)
+    const lenis = new Lenis({
+      duration: 1.25,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smoothWheel: true,
+    });
+    lenisRef.current = lenis;
 
-      const y = window.scrollY;
-      const progress = Math.min(Math.max(y / maxScroll, 0), 1);
+    function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+    requestAnimationFrame(raf);
 
-      setScrollProgress(progress);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    handleScroll();
-
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => lenis.destroy();
   }, []);
 
   return (
-    <div className="min-h-screen bg-black overflow-x-hidden">
-      <Navbar />
-      
-      {/* Fixed 3D model layer */}
-      <div className="fixed inset-0 z-50 pointer-events-none pt-16">
-        <div className="pointer-events-auto w-full h-full">
-          <HardwareModel3D scrollProgress={scrollProgress} />
-        </div>
-      </div>
+    <div style={{ background: "var(--bg)", minHeight: "100vh", overflowX: "hidden" }}>
+      {/* Fixed dot grid background */}
+      <div className="dot-grid" />
 
-      <div className="pt-16">
-        <Hero />
-        <HardwareSection />
-        <ScanDemoSection />
-        <HowItWorksSection />
-        <AboutSection />
-      </div>
+      {/* Navbar */}
+      <Navbar />
+
+      {/* Sections */}
+      <HeroSection />
+      <ProblemSection />
+      <SolutionSection />
+      <HowItWorksSection />
+      <TechSection />
+      <VisionSection />
+      <FooterSection />
     </div>
   );
 }

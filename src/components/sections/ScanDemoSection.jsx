@@ -1,405 +1,444 @@
-import { useState, Suspense } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Canvas } from '@react-three/fiber';
-import { PerspectiveCamera, Environment, OrbitControls } from '@react-three/drei';
-import { ICJigModel } from '../3d/models';
+import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion, useInView, AnimatePresence } from "framer-motion";
+import { Suspense } from "react";
+import { Canvas } from "@react-three/fiber";
+import { PerspectiveCamera, Environment, OrbitControls } from "@react-three/drei";
+import { ICJigModel } from "../3d/models";
+
+/* ── Mock terminal lines ────────────────────────────────────────── */
+const terminalLines = [
+  { prefix: "sys", text: "Authentichip scanner v2.1 initialized", color: "#06B6D4" },
+  { prefix: "hw",  text: "Camera module ready — resolution 4K", color: "#B0BDD6" },
+  { prefix: "ai",  text: "Loading TorchScript model... OK", color: "#10B981" },
+  { prefix: "ocr", text: "Waiting for component placement...", color: "#6B7A99" },
+];
+
+const scanLines = [
+  { label: "OCR Extraction",      delay: 0,    color: "#06B6D4", duration: 1.1 },
+  { label: "Anomaly Detection",   delay: 1.2,  color: "#8B5CF6", duration: 1.4 },
+  { label: "GAN Scoring",         delay: 2.7,  color: "#EC4899", duration: 1.0 },
+  { label: "Datasheet Match",     delay: 3.8,  color: "#10B981", duration: 0.9 },
+];
+
+/* ── Animated terminal ─────────────────────────────────────────── */
+function Terminal({ running }) {
+  const [visibleLines, setVisibleLines] = useState([]);
+  const [scanComplete, setScanComplete] = useState(false);
+
+  useEffect(() => {
+    if (!running) {
+      setVisibleLines([]);
+      setScanComplete(false);
+      return;
+    }
+    terminalLines.forEach((line, i) => {
+      setTimeout(() => setVisibleLines((prev) => [...prev, line]), i * 600);
+    });
+    setTimeout(() => setScanComplete(true), terminalLines.length * 600 + 800);
+  }, [running]);
+
+  return (
+    <div style={{
+      fontFamily: "'Fira Code', 'Courier New', monospace",
+      fontSize: "0.78rem",
+      lineHeight: 1.8,
+      padding: "1.2rem",
+      background: "rgba(0,0,0,0.5)",
+      borderRadius: 10,
+      border: "1px solid rgba(6,182,212,0.15)",
+      minHeight: 140,
+      overflowY: "auto",
+    }}>
+      {visibleLines.map((line, i) => (
+        <div key={i} style={{ display: "flex", gap: 8 }}>
+          <span style={{ color: line.color, fontWeight: 600, opacity: 0.8 }}>
+            [{line.prefix}]
+          </span>
+          <span style={{ color: "#B0BDD6" }}>{line.text}</span>
+        </div>
+      ))}
+      {running && !scanComplete && (
+        <div style={{ display: "flex", gap: 8, color: "#06B6D4" }}>
+          <span>▋</span>
+        </div>
+      )}
+      {scanComplete && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          style={{ display: "flex", gap: 8 }}
+        >
+          <span style={{ color: "#10B981", fontWeight: 700 }}>[result]</span>
+          <span style={{ color: "#10B981", fontWeight: 700 }}>✓ GENUINE — Confidence: 98.4%</span>
+        </motion.div>
+      )}
+    </div>
+  );
+}
+
+/* ── Scan progress bars ─────────────────────────────────────────── */
+function ScanProgress({ running }) {
+  const [done, setDone] = useState([]);
+
+  useEffect(() => {
+    if (!running) { setDone([]); return; }
+    scanLines.forEach((s, i) => {
+      setTimeout(() => setDone((p) => [...p, i]), (s.delay + s.duration) * 1000);
+    });
+  }, [running]);
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+      {scanLines.map((s, i) => {
+        const isDone = done.includes(i);
+        const isRunning = running && !isDone;
+        return (
+          <div key={s.label}>
+            <div style={{
+              display: "flex", justifyContent: "space-between",
+              marginBottom: 4,
+              fontFamily: "var(--font)", fontSize: "0.75rem",
+              color: isDone ? s.color : "#6B7A99",
+              fontWeight: isDone ? 600 : 400,
+              transition: "color 0.3s ease",
+            }}>
+              <span>{s.label}</span>
+              <span>{isDone ? "100%" : running ? "…" : "0%"}</span>
+            </div>
+            <div style={{
+              height: 4, borderRadius: 999,
+              background: "rgba(255,255,255,0.06)",
+              overflow: "hidden",
+            }}>
+              <motion.div
+                initial={{ width: "0%" }}
+                animate={{ width: isDone ? "100%" : "0%" }}
+                transition={{ duration: s.duration, delay: s.delay, ease: "easeOut" }}
+                style={{
+                  height: "100%",
+                  background: s.color,
+                  boxShadow: `0 0 8px ${s.color}80`,
+                }}
+              />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function ScanDemoSection() {
-    const navigate = useNavigate();
-    const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-    const [isDragging, setIsDragging] = useState(false);
-    const [scannerStatus, setScannerStatus] = useState('ready');
-    const [isAutoFocus, setIsAutoFocus] = useState(true);
-    const [zoomLevel, setZoomLevel] = useState(1);
-    const [scanProgress, setScanProgress] = useState(0);
+  const navigate = useNavigate();
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-80px" });
+  const [scanning, setScanning] = useState(false);
+  const [scanDone, setScanDone] = useState(false);
 
-    const handleMouseMove = (e) => {
-        const rect = e.currentTarget.getBoundingClientRect();
-        const x = (e.clientX - rect.left) / rect.width - 0.5;
-        const y = (e.clientY - rect.top) / rect.height - 0.5;
-        setMousePosition({ x, y });
-    };
+  const startScan = () => {
+    if (scanning) return;
+    setScanning(true);
+    setScanDone(false);
+    const totalTime = scanLines.reduce((acc, s) => Math.max(acc, (s.delay + s.duration) * 1000), 0);
+    setTimeout(() => {
+      setScanning(false);
+      setScanDone(true);
+    }, totalTime + 1200);
+  };
 
-    const startScan = () => {
-        navigate('/scan');
-    };
+  return (
+    <section
+      id="scandemo"
+      ref={ref}
+      className="section-pad"
+      style={{ position: "relative", zIndex: 10, scrollMarginTop: "64px" }}
+    >
+      {/* bg glow */}
+      <div style={{
+        position: "absolute", top: "40%", left: "-5%",
+        width: "500px", height: "500px",
+        background: "radial-gradient(ellipse, rgba(6,182,212,0.06) 0%, transparent 70%)",
+        pointerEvents: "none", zIndex: 0,
+      }} />
 
-    const toggleAutoFocus = () => {
-        setIsAutoFocus(!isAutoFocus);
-    };
-
-    const adjustZoom = () => {
-        setZoomLevel(prev => prev >= 3 ? 1 : prev + 0.5);
-    };
-
-    const steps = [
-        {
-            number: "01",
-            title: "Position Scanner",
-            description: "Automated positioning system aligns the inspection rig for optimal scanning",
-            icon: (
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11" />
-                </svg>
-            )
-        },
-        {
-            number: "02",
-            title: "Automated Scan",
-            description: "High-resolution camera captures detailed images of IC markings",
-            icon: (
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-            )
-        },
-        {
-            number: "03",
-            title: "AI Analysis",
-            description: "Machine learning models verify authenticity in real-time",
-            icon: (
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                </svg>
-            )
-        },
-        {
-            number: "04",
-            title: "Instant Results",
-            description: "Get authentication report with confidence score and verification",
-            icon: (
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-            )
-        }
-    ];
-
-    return (
-        <section
-            id="scandemo"
-            className="min-h-screen flex items-center relative pointer-events-none px-6 sm:px-10 lg:px-20"
-            style={{ scrollMarginTop: '64px' }}
-            onMouseMove={handleMouseMove}
+      <div style={{ maxWidth: "1200px", margin: "0 auto", position: "relative", zIndex: 1 }}>
+        {/* ── Header ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          style={{ marginBottom: "4rem" }}
         >
-            {/* Cyan gradient background matching Hardware section */}
-            <div className="absolute inset-0 bg-linear-to-b from-cyan-900/30 via-cyan-800/35 to-cyan-900/25 pointer-events-none" />
-            <div className="absolute inset-0 bg-linear-to-r from-cyan-900/20 via-transparent to-cyan-900/20 pointer-events-none" />
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: 8,
+            padding: "5px 14px", borderRadius: 999,
+            background: "rgba(236,72,153,0.1)",
+            border: "1px solid rgba(236,72,153,0.25)",
+            marginBottom: "1.2rem",
+          }}>
+            <span style={{
+              fontFamily: "var(--font)", fontSize: "0.7rem",
+              fontWeight: 600, letterSpacing: "0.1em",
+              textTransform: "uppercase", color: "#EC4899",
+            }}>
+              Live Demo
+            </span>
+          </div>
+          <h2 style={{
+            fontFamily: "var(--font)", fontWeight: 900,
+            fontSize: "clamp(2rem, 4.5vw, 3.2rem)",
+            letterSpacing: "-0.04em", lineHeight: 1.1,
+          }}>
+            <span style={{
+              background: "linear-gradient(135deg, #F0F6FF, #B0BDD6)",
+              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}>
+              Try the Scanner.
+            </span>
+            <br />
+            <span style={{
+              background: "linear-gradient(135deg, #06B6D4, #EC4899)",
+              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}>
+              Watch AI Verify in Real-Time.
+            </span>
+          </h2>
+        </motion.div>
 
+        {/* ── Main Grid ── */}
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "1fr",
+          gap: "2rem",
+          alignItems: "start",
+        }}
+          className="scan-grid"
+        >
+          {/* Left: 3D canvas */}
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            animate={inView ? { opacity: 1, x: 0 } : {}}
+            transition={{ delay: 0.2, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            className="glass"
+            style={{
+              position: "relative", overflow: "hidden",
+              aspectRatio: "4/3", minHeight: 280,
+              borderColor: scanning ? "rgba(6,182,212,0.4)" : "rgba(255,255,255,0.07)",
+              boxShadow: scanning ? "0 0 60px rgba(6,182,212,0.2)" : "none",
+              transition: "border-color 0.4s ease, box-shadow 0.4s ease",
+            }}
+          >
+            {/* Scan beam */}
+            {scanning && <div className="scan-beam" />}
 
+            {/* Corner brackets */}
+            {[
+              { top: 8, left: 8, borderTop: "2px solid", borderLeft: "2px solid" },
+              { top: 8, right: 8, borderTop: "2px solid", borderRight: "2px solid" },
+              { bottom: 8, left: 8, borderBottom: "2px solid", borderLeft: "2px solid" },
+              { bottom: 8, right: 8, borderBottom: "2px solid", borderRight: "2px solid" },
+            ].map((s, i) => (
+              <div key={i} style={{
+                position: "absolute", width: 18, height: 18,
+                borderColor: "#06B6D4", zIndex: 10,
+                ...s,
+              }} />
+            ))}
 
-            <div className="relative z-60 w-full max-w-9xl mx-auto pointer-events-auto flex items-center justify-start">
-
-                {/* Left Side - Interactive Instructions */}
-                <div className="w-full lg:w-1/3 space-y-4 pr-0 lg:pr-20">
-
-                    {/* Header with parallax */}
-                    <div
-                        className="space-y-2 transition-transform duration-500 ease-out"
-                        style={{
-                            transform: `perspective(1000px) rotateX(${mousePosition.y * -3}deg) rotateY(${mousePosition.x * 3}deg)`
-                        }}
-                    >
-                        <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-tight">
-                            <span className="bg-clip-text text-transparent bg-linear-to-r from-white via-cyan-200 to-cyan-400">
-                                Advanced IC Scanner
-                            </span>
-                        </h2>
-
-                        <p className="text-gray-300 text-xl leading-relaxed max-w-xl">
-                            Professional-grade inspection system with AI-powered authentication and real-time analysis
-                        </p>
-                    </div>
-
-                    {/* Drag Instruction Card */}
-                    <div
-                        className="relative bg-cyan-950/40 backdrop-blur-md border border-cyan-500/30 rounded-2xl p-4 overflow-hidden group"
-                        style={{
-                            transform: `translate(${mousePosition.x * 10}px, ${mousePosition.y * 10}px)`
-                        }}
-                        onMouseEnter={() => setIsDragging(true)}
-                        onMouseLeave={() => setIsDragging(false)}
-                    >
-                        <div className="absolute inset-0 bg-linear-to-br from-cyan-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-
-                        <div className="relative z-10 flex items-center gap-3">
-                            <div className="shrink-0 w-10 h-10 bg-cyan-500/20 rounded-xl flex items-center justify-center border border-cyan-400/30">
-                                <svg className="w-5 h-5 text-cyan-400 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11" />
-                                </svg>
-                            </div>
-                            <div className="flex-1">
-                                <h3 className="text-white font-bold text-lg mb-0.5">Interactive Scanner</h3>
-                                <p className="text-gray-400 text-sm">Control the scanner settings and initiate authentication scans</p>
-                            </div>
-                            <div className="shrink-0">
-                                <div className="text-cyan-400 text-2xl">→</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Process Steps */}
-                    <div className="space-y-2">
-                        {steps.map((step, index) => {
-                            const delay = index * 0.05;
-                            const offsetX = mousePosition.x * (15 - index * 2);
-                            const offsetY = mousePosition.y * (15 - index * 2);
-
-                            return (
-                                <div
-                                    key={index}
-                                    className="group relative bg-black/30 backdrop-blur-sm border border-cyan-500/20 rounded-xl p-3 transition-all duration-300 hover:bg-cyan-950/30 hover:border-cyan-400/40 hover:shadow-[0_0_25px_rgba(34,211,238,0.3)]"
-                                    style={{
-                                        transform: `translate(${offsetX}px, ${offsetY}px)`,
-                                        transitionDelay: `${delay}s`
-                                    }}
-                                >
-                                    <div className="flex items-start gap-3">
-                                        <div className="shrink-0">
-                                            <div className="w-8 h-8 bg-cyan-500/10 rounded-lg flex items-center justify-center border border-cyan-500/30 group-hover:bg-cyan-500/20 transition-colors">
-                                                <span className="text-cyan-400 font-bold text-xs">{step.number}</span>
-                                            </div>
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-2 mb-0.5">
-                                                <div className="text-cyan-400 group-hover:scale-110 transition-transform">
-                                                    {step.icon}
-                                                </div>
-                                                <h4 className="text-white font-bold text-base group-hover:text-cyan-300 transition-colors">
-                                                    {step.title}
-                                                </h4>
-                                            </div>
-                                            <p className="text-gray-400 text-sm leading-relaxed group-hover:text-gray-300 transition-colors">
-                                                {step.description}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    {/* Progress indicator */}
-                                    <div className="absolute left-[22px] top-14 bottom-0 w-px bg-cyan-500/20 group-hover:bg-cyan-400/40 transition-colors"></div>
-                                </div>
-                            );
-                        })}
-                    </div>
-
-                </div>
-
-                {/* Right Side - 3D Model Area (wcJIG model is positioned here via App.jsx fixed layer) */}
-                <div className="hidden lg:block w-2/3 relative min-h-[600px]">
-                    {/* Interactive UI Overlay */}
-                    <div className="absolute inset-0 z-10 pointer-events-none">
-                        {/* Feature Showcase Cards */}
-                        <div className="absolute -top-4 right-4 pointer-events-auto">
-                            <div className="space-y-4">
-                                {/* Modular System Card */}
-                                <div className="bg-black/60 backdrop-blur-xl border border-cyan-400/30 rounded-2xl p-6 w-72 relative overflow-hidden group hover:scale-105 hover:border-cyan-300/60 transition-all duration-500 hover:shadow-[0_0_30px_rgba(34,211,238,0.4)]">
-                                    <div className="absolute inset-0 bg-linear-to-br from-cyan-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-
-                                    <div className="relative z-10">
-                                        <div className="flex items-center gap-3 mb-4">
-                                            <div className="w-12 h-12 bg-linear-to-br from-cyan-400/20 to-blue-500/20 rounded-xl flex items-center justify-center">
-                                                <svg className="w-7 h-7 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                                                </svg>
-                                            </div>
-                                            <div>
-                                                <h3 className="text-white font-bold text-xl">Crypto Passport</h3>
-                                                <p className="text-cyan-400 text-sm">Immutable Provenance</p>
-                                            </div>
-                                        </div>
-
-                                        <p className="text-gray-300 text-sm leading-relaxed mb-4">
-                                            Every scan generates a cryptographic passport with SHA-256 hash stored in append-only ledger for tamper-proof verification.
-                                        </p>
-
-                                        <div className="space-y-2">
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-2 h-2 bg-cyan-400 rounded-full"></div>
-                                                <span className="text-gray-300 text-xs">SHA-256 Component Hash</span>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-2 h-2 bg-cyan-400 rounded-full"></div>
-                                                <span className="text-gray-300 text-xs">Blockchain Verification</span>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-2 h-2 bg-cyan-400 rounded-full"></div>
-                                                <span className="text-gray-300 text-xs">Digital Certificates</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* AI Detection Card */}
-                                <div className="bg-black/60 backdrop-blur-xl border border-purple-400/30 rounded-2xl p-6 w-72 relative overflow-hidden group hover:scale-105 hover:border-purple-300/60 transition-all duration-500 hover:shadow-[0_0_30px_rgba(147,51,234,0.4)]">
-                                    <div className="absolute inset-0 bg-linear-to-br from-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-
-                                    <div className="relative z-10">
-                                        <div className="flex items-center gap-3 mb-4">
-                                            <div className="w-12 h-12 bg-linear-to-br from-purple-400/20 to-pink-500/20 rounded-xl flex items-center justify-center">
-                                                <svg className="w-7 h-7 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                </svg>
-                                            </div>
-                                            <div>
-                                                <h3 className="text-white font-bold text-xl">Smart Workflow</h3>
-                                                <p className="text-purple-400 text-sm">Multi-Role Decision Engine</p>
-                                            </div>
-                                        </div>
-
-                                        <p className="text-gray-300 text-sm leading-relaxed mb-4">
-                                            Automated decision engine with human-in-the-loop workflows for Admin, Worker, and User roles with dispute resolution.
-                                        </p>
-
-                                        <div className="space-y-2">
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-                                                <span className="text-gray-300 text-xs">Green/Yellow/Red Scoring</span>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-                                                <span className="text-gray-300 text-xs">Dispute Resolution</span>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-                                                <span className="text-gray-300 text-xs">Quarantine Management</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Ultra Modern Interactive Scan Button */}
-                        <div className="absolute -bottom-18 right-23 pointer-events-auto">
-                            <div className="relative group cursor-pointer" onClick={startScan}>
-                                {/* Morphing Background Container */}
-                                <div className="relative w-32 h-16 bg-black/30 backdrop-blur-2xl rounded-2xl border border-cyan-400/20 overflow-hidden transition-all duration-700 ease-out group-hover:w-36 group-hover:h-18 group-hover:bg-black/50 group-hover:border-cyan-300/40">
-                                    {/* Animated gradient background */}
-                                    <div className="absolute inset-0 bg-linear-to-r from-cyan-500/20 via-blue-500/10 to-purple-500/20 opacity-50 group-hover:opacity-80 transition-opacity duration-500"></div>
-
-                                    {/* Scanning beam effect */}
-                                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                                        <div className="absolute top-0 left-0 w-1 h-full bg-linear-to-b from-transparent via-cyan-400 to-transparent animate-pulse"></div>
-                                        <div className="absolute top-0 right-0 w-1 h-full bg-linear-to-b from-transparent via-cyan-400 to-transparent animate-pulse" style={{ animationDelay: '0.3s' }}></div>
-                                        <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-transparent via-cyan-400 to-transparent animate-pulse" style={{ animationDelay: '0.6s' }}></div>
-                                        <div className="absolute bottom-0 left-0 w-full h-1 bg-linear-to-r from-transparent via-cyan-400 to-transparent animate-pulse" style={{ animationDelay: '0.9s' }}></div>
-                                    </div>
-
-                                    {/* Main Content */}
-                                    <div className="relative z-10 flex items-center justify-center h-full px-4 gap-3">
-                                        {/* Icon Section */}
-                                        <div className="relative">
-                                            {scannerStatus === 'scanning' ? (
-                                                <div className="relative">
-                                                    <div className="w-8 h-8 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
-                                                    <div className="absolute inset-2 bg-cyan-400 rounded-full animate-pulse"></div>
-                                                    {/* Scanning rays */}
-                                                    <div className="absolute inset-0">
-                                                        <div className="absolute top-0 left-1/2 w-0.5 h-4 bg-cyan-400 transform -translate-x-1/2 animate-pulse"></div>
-                                                        <div className="absolute bottom-0 left-1/2 w-0.5 h-4 bg-cyan-400 transform -translate-x-1/2 animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                                                        <div className="absolute left-0 top-1/2 w-4 h-0.5 bg-cyan-400 transform -translate-y-1/2 animate-pulse" style={{ animationDelay: '0.4s' }}></div>
-                                                        <div className="absolute right-0 top-1/2 w-4 h-0.5 bg-cyan-400 transform -translate-y-1/2 animate-pulse" style={{ animationDelay: '0.6s' }}></div>
-                                                    </div>
-                                                </div>
-                                            ) : (
-                                                <div className="relative">
-                                                    <svg className="w-8 h-8 text-cyan-400 group-hover:text-white transition-all duration-500 group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                                                    </svg>
-                                                    {/* Interactive crosshairs */}
-                                                    <div className="absolute -inset-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                                        <div className="absolute top-0 left-1/2 w-0.5 h-2 bg-cyan-400 transform -translate-x-1/2"></div>
-                                                        <div className="absolute bottom-0 left-1/2 w-0.5 h-2 bg-cyan-400 transform -translate-x-1/2"></div>
-                                                        <div className="absolute left-0 top-1/2 w-2 h-0.5 bg-cyan-400 transform -translate-y-1/2"></div>
-                                                        <div className="absolute right-0 top-1/2 w-2 h-0.5 bg-cyan-400 transform -translate-y-1/2"></div>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        {/* Text Section */}
-                                        <div className="flex flex-col">
-                                            <span className="text-white text-sm font-bold leading-tight">
-                                                {scannerStatus === 'scanning' ? 'Scanning...' : 'SCAN'}
-                                            </span>
-                                            <span className="text-cyan-400 text-xs opacity-80">
-                                                {scannerStatus === 'scanning' ? 'Processing' : 'Start Analysis'}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    {/* Progress indicator when scanning */}
-                                    {scannerStatus === 'scanning' && (
-                                        <div className="absolute bottom-0 left-0 h-0.5 bg-cyan-400 transition-all duration-1000 ease-out" style={{ width: '60%' }}></div>
-                                    )}
-                                </div>
-
-                                {/* Floating particles */}
-                                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                                    <div className="absolute -top-1 left-4 w-1 h-1 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
-                                    <div className="absolute -top-2 right-6 w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                                    <div className="absolute -bottom-1 left-8 w-1 h-1 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
-                                    <div className="absolute -bottom-2 right-4 w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: '0.6s' }}></div>
-                                </div>
-
-                                {/* Holographic glow effect */}
-                                <div className="absolute inset-0 opacity-0 group-hover:opacity-60 transition-opacity duration-700">
-                                    <div className="absolute inset-0 bg-linear-to-r from-cyan-400/20 via-transparent to-blue-400/20 rounded-2xl animate-pulse"></div>
-                                </div>
-
-
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* 3D Canvas */}
-                    <Canvas
-                        shadows
-                        gl={{ alpha: true, antialias: true }}
-                        dpr={[1, 2]}
-                        className="w-full h-full"
-                    >
-                        <PerspectiveCamera makeDefault position={[0, 0, 20]} fov={40} />
-
-                        <ambientLight intensity={1} />
-                        <spotLight position={[10, 10, 10]} angle={0.3} penumbra={1} intensity={3} color="#22d3ee" />
-                        <pointLight position={[0, -10, 5]} intensity={3} color="#4dd0e1" />
-                        <pointLight position={[0, 0, 5]} intensity={3} color="#06b6d4" />
-
-                        <Suspense fallback={null}>
-                            {/* chip model removed - using global jig only */}
-                            <Environment preset="night" />
-                        </Suspense>
-
-                        <OrbitControls enableZoom={false} enablePan={false} enableRotate={false} />
-                    </Canvas>
-
-                    {/* Success Animation Overlay */}
-                    {scannerStatus === 'complete' && (
-                        <div className="absolute inset-0 z-20 pointer-events-none flex items-center justify-center">
-                            <div className="relative">
-                                <div className="w-32 h-32 border-4 border-green-400 rounded-full animate-ping"></div>
-                                <div className="absolute inset-4 w-24 h-24 border-2 border-green-300 rounded-full animate-pulse"></div>
-                                <div className="absolute inset-8 w-16 h-16 bg-green-400 rounded-full flex items-center justify-center">
-                                    <svg className="w-8 h-8 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                                    </svg>
-                                </div>
-                                {/* Sparkle effects */}
-                                <div className="absolute -top-2 left-1/2 w-2 h-2 bg-yellow-400 rounded-full animate-bounce"></div>
-                                <div className="absolute top-1/4 -right-2 w-1.5 h-1.5 bg-white rounded-full animate-ping"></div>
-                                <div className="absolute bottom-1/4 -left-2 w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                                <div className="absolute -bottom-2 right-1/3 w-1.5 h-1.5 bg-green-300 rounded-full animate-ping" style={{ animationDelay: '0.4s' }}></div>
-                            </div>
-                        </div>
-                    )}
-                </div>
+            {/* Status dot */}
+            <div style={{
+              position: "absolute", top: 16, left: "50%", transform: "translateX(-50%)",
+              zIndex: 10, display: "flex", alignItems: "center", gap: 6,
+              padding: "4px 12px", borderRadius: 999,
+              background: "rgba(0,0,0,0.6)", border: "1px solid rgba(255,255,255,0.1)",
+            }}>
+              <div style={{
+                width: 6, height: 6, borderRadius: "50%",
+                background: scanning ? "#06B6D4" : scanDone ? "#10B981" : "#6B7A99",
+                boxShadow: scanning ? "0 0 8px #06B6D4" : scanDone ? "0 0 8px #10B981" : "none",
+                animation: scanning ? "pulse-dot 1s infinite" : "none",
+              }} />
+              <span style={{
+                fontFamily: "var(--font)", fontSize: "0.65rem",
+                fontWeight: 600, letterSpacing: "0.08em",
+                color: scanning ? "#06B6D4" : scanDone ? "#10B981" : "#6B7A99",
+              }}>
+                {scanning ? "SCANNING" : scanDone ? "VERIFIED" : "READY"}
+              </span>
             </div>
 
-            {/* Section Divider */}
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-linear-to-r from-transparent via-cyan-500/60 to-transparent pointer-events-none"></div>
-        </section>
-    );
+            {/* 3D Canvas */}
+            <div style={{ width: "100%", height: "100%" }}>
+              <Canvas style={{ width: "100%", height: "100%" }}>
+                <PerspectiveCamera makeDefault position={[0, 0.5, 3.5]} fov={40} />
+                <ambientLight intensity={0.6} />
+                <directionalLight position={[5, 5, 5]} intensity={1.2} color="#06B6D4" />
+                <directionalLight position={[-5, -5, 5]} intensity={0.4} color="#8B5CF6" />
+                <Suspense fallback={null}>
+                  <ICJigModel />
+                  <Environment preset="city" />
+                </Suspense>
+                <OrbitControls
+                  enableZoom={false}
+                  autoRotate={!scanning}
+                  autoRotateSpeed={1.5}
+                  maxPolarAngle={Math.PI / 1.8}
+                  minPolarAngle={Math.PI / 3}
+                />
+              </Canvas>
+            </div>
+          </motion.div>
+
+          {/* Right: controls + terminal */}
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            animate={inView ? { opacity: 1, x: 0 } : {}}
+            transition={{ delay: 0.3, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}
+          >
+            {/* Scan Progress */}
+            <div className="glass" style={{ padding: "1.5rem" }}>
+              <div style={{
+                fontFamily: "var(--font)", fontSize: "0.72rem",
+                fontWeight: 600, letterSpacing: "0.1em",
+                textTransform: "uppercase", color: "#6B7A99",
+                marginBottom: "1.2rem",
+              }}>
+                Analysis Pipeline
+              </div>
+              <ScanProgress running={scanning} />
+            </div>
+
+            {/* Terminal */}
+            <div className="glass" style={{ padding: "1.5rem" }}>
+              <div style={{
+                fontFamily: "var(--font)", fontSize: "0.72rem",
+                fontWeight: 600, letterSpacing: "0.1em",
+                textTransform: "uppercase", color: "#6B7A99",
+                marginBottom: "1rem",
+                display: "flex", alignItems: "center", gap: 8,
+              }}>
+                <div style={{
+                  display: "flex", gap: 5,
+                }}>
+                  {["#FF5F56", "#FFBD2E", "#27C93F"].map(c => (
+                    <div key={c} style={{ width: 9, height: 9, borderRadius: "50%", background: c }} />
+                  ))}
+                </div>
+                system.log
+              </div>
+              <Terminal running={scanning} done={scanDone} />
+            </div>
+
+            {/* CTA Button */}
+            <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={startScan}
+                disabled={scanning}
+                className="btn-shimmer"
+                style={{
+                  flex: 1,
+                  padding: "13px 24px",
+                  borderRadius: 999,
+                  background: scanning
+                    ? "rgba(6,182,212,0.2)"
+                    : "linear-gradient(135deg, #06B6D4, #8B5CF6)",
+                  color: "#fff",
+                  fontFamily: "var(--font)",
+                  fontWeight: 700, fontSize: "0.9rem",
+                  border: scanning ? "1px solid rgba(6,182,212,0.3)" : "none",
+                  cursor: scanning ? "not-allowed" : "pointer",
+                  boxShadow: scanning ? "none" : "0 0 30px rgba(6,182,212,0.3)",
+                  transition: "all 0.3s ease",
+                }}
+              >
+                {scanning ? "Scanning…" : scanDone ? "Scan Again" : "Run Scan Demo"}
+              </motion.button>
+
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => navigate("/scan")}
+                style={{
+                  padding: "13px 24px",
+                  borderRadius: 999,
+                  background: "rgba(255,255,255,0.04)",
+                  color: "#B0BDD6",
+                  fontFamily: "var(--font)",
+                  fontWeight: 600, fontSize: "0.9rem",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  cursor: "pointer",
+                  transition: "all 0.25s ease",
+                }}
+              >
+                Full Scanner →
+              </motion.button>
+            </div>
+
+            {/* Result badge */}
+            <AnimatePresence>
+              {scanDone && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  className="glass"
+                  style={{
+                    padding: "1.2rem 1.5rem",
+                    display: "flex", alignItems: "center", gap: "1rem",
+                    borderColor: "rgba(16,185,129,0.35)",
+                    boxShadow: "0 0 40px rgba(16,185,129,0.15)",
+                  }}
+                >
+                  <div style={{
+                    width: 40, height: 40, borderRadius: 10,
+                    background: "rgba(16,185,129,0.15)",
+                    border: "1px solid rgba(16,185,129,0.3)",
+                    display: "flex", alignItems: "center",
+                    justifyContent: "center", fontSize: "1.2rem",
+                    flexShrink: 0,
+                  }}>
+                    ✓
+                  </div>
+                  <div>
+                    <div style={{
+                      fontFamily: "var(--font)", fontWeight: 700,
+                      fontSize: "0.9rem", color: "#10B981",
+                      marginBottom: "0.15rem",
+                    }}>
+                      IC Verified: GENUINE
+                    </div>
+                    <div style={{
+                      fontFamily: "var(--font)", fontSize: "0.75rem", color: "#6B7A99",
+                    }}>
+                      Confidence: 98.4% — Logged to audit trail
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        </div>
+      </div>
+
+      {/* Responsive grid */}
+      <style>{`
+        @media (min-width: 1024px) {
+          .scan-grid { grid-template-columns: 1.2fr 1fr !important; }
+        }
+      `}</style>
+
+      {/* Divider */}
+      <div style={{
+        position: "absolute", bottom: 0, left: 0, right: 0, height: 1,
+        background: "linear-gradient(90deg, transparent, rgba(236,72,153,0.3), transparent)",
+        pointerEvents: "none",
+      }} />
+    </section>
+  );
 }

@@ -1,106 +1,412 @@
-import { useState } from 'react';
+import { useEffect, useRef } from "react";
+import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+
+/* ── Stagger helpers ──────────────────────────────────────────────── */
+const container = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.12, delayChildren: 0.2 } },
+};
+const wordAnim = {
+  hidden: { y: 60, opacity: 0 },
+  show:   { y: 0, opacity: 1, transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] } },
+};
+const fadeUp = {
+  hidden: { y: 30, opacity: 0 },
+  show:   { y: 0, opacity: 1, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } },
+};
+
+const features = [
+  "Hardware-Verified",
+  "ML-Powered Decisions",
+  "Real-Time Scan",
+  "Lab-Grade Confidence",
+];
+
+/* ── Floating particles canvas ───────────────────────────────────── */
+function ParticleCanvas() {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    let raf;
+    let particles = [];
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    resize();
+    window.addEventListener("resize", resize);
+
+    for (let i = 0; i < 60; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 1.5 + 0.4,
+        dx: (Math.random() - 0.5) * 0.3,
+        dy: -(Math.random() * 0.4 + 0.1),
+        alpha: Math.random() * 0.5 + 0.1,
+        color: Math.random() > 0.5 ? "6,182,212" : "139,92,246",
+      });
+    }
+
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach((p) => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${p.color},${p.alpha})`;
+        ctx.fill();
+        p.x += p.dx;
+        p.y += p.dy;
+        if (p.y < -4) { p.y = canvas.height + 4; p.x = Math.random() * canvas.width; }
+        if (p.x < -4) p.x = canvas.width + 4;
+        if (p.x > canvas.width + 4) p.x = -4;
+      });
+      raf = requestAnimationFrame(draw);
+    };
+    draw();
+
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", resize);
+    };
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      style={{
+        position: "absolute",
+        inset: 0,
+        width: "100%",
+        height: "100%",
+        pointerEvents: "none",
+        zIndex: 1,
+      }}
+    />
+  );
+}
 
 export default function Hero() {
-    const features = [
-        'Hardware-Verified',
-        'ML-Powered Decisions',
-        'Real-Time Scan',
-        'Lab-Grade Confidence',
-    ];
+  const navigate = useNavigate();
 
-    return (
-        <section id="home" className="relative h-screen w-full bg-transparent overflow-hidden pt-16 pointer-events-none">
-            {/* Cyan gradient background matching Hardware section */}
-            <div className="absolute inset-0 bg-linear-to-b from-cyan-900/30 via-cyan-800/35 to-cyan-900/25 pointer-events-none"></div>
-            <div className="absolute inset-0 bg-linear-to-r from-cyan-900/20 via-transparent to-cyan-900/20 pointer-events-none"></div>
-            
-            {/* Background effects */}
-            <div className="absolute inset-0 pointer-events-none">
-                {/* Radial glow */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-radial from-cyan-500/25 via-cyan-600/12 to-transparent rounded-full blur-3xl"></div>
+  return (
+    <section
+      id="home"
+      style={{
+        position: "relative",
+        minHeight: "100vh",
+        width: "100%",
+        overflow: "hidden",
+        paddingTop: "64px",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      {/* ── Layered Bg ── */}
+      <div style={{ position: "absolute", inset: 0, zIndex: 0, pointerEvents: "none" }}>
+        {/* Deep space gradient */}
+        <div style={{
+          position: "absolute", inset: 0,
+          background: "radial-gradient(ellipse 90% 80% at 50% 30%, rgba(6,182,212,0.12) 0%, rgba(139,92,246,0.08) 40%, transparent 75%)",
+        }} />
+        {/* Bottom fade */}
+        <div style={{
+          position: "absolute", inset: 0,
+          background: "linear-gradient(to bottom, transparent 50%, rgba(5,10,20,0.95) 100%)",
+        }} />
+      </div>
 
-                {/* Scan rings */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                    <div className="w-[600px] h-[600px] border border-cyan-500/10 rounded-full animate-pulse"></div>
-                    <div className="absolute inset-0 w-[500px] h-[500px] m-auto border border-cyan-500/5 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
-                    <div className="absolute inset-0 w-[400px] h-[400px] m-auto border border-cyan-500/5 rounded-full animate-pulse" style={{ animationDelay: '2s' }}></div>
-                </div>
-            </div>
+      {/* ── Dot grid ── */}
+      <div className="dot-grid" />
 
-            {/* Content Container */}
-            <div className="relative z-30 h-full flex flex-col items-center justify-center px-6 sm:px-10 lg:px-20 pointer-events-none">
-                
-                {/* Text Block */}
-                <div className="pointer-events-auto text-center space-y-6 max-w-5xl mb-10">
-                    {/* Main Heading */}
-                    <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-tight">
-                        <span className="bg-linear-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(34,211,238,0.3)]">
-                            Authentichip
-                        </span>
-                        <br />
-                        <span className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl">
-                            Trust Every IC You Touch.
-                        </span>
-                    </h1>
+      {/* ── Floating particles ── */}
+      <ParticleCanvas />
 
-                    {/* Subheadline */}
-                    <p className="text-gray-400 text-sm sm:text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
-                        A dedicated inspection rig fused with AI that tells you—instantly—if your IC is genuine or counterfeit.
-                    </p>
+      {/* ── Orbit Rings ── */}
+      <div style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 2, overflow: "hidden" }}>
+        {[680, 520, 380].map((size, i) => (
+          <div
+            key={size}
+            className="orbit-ring"
+            style={{
+              width: size,
+              height: size,
+              borderColor: i === 0
+                ? "rgba(6,182,212,0.08)"
+                : i === 1
+                ? "rgba(139,92,246,0.06)"
+                : "rgba(6,182,212,0.05)",
+              animationDuration: `${30 + i * 15}s`,
+              animationDirection: i % 2 === 0 ? "normal" : "reverse",
+            }}
+          />
+        ))}
+      </div>
 
-                    {/* Feature Pills */}
-                    <div className="flex flex-wrap justify-center gap-2 sm:gap-3 pt-2">
-                        {features.map((feature) => (
-                            <span
-                                key={feature}
-                                className="px-3 py-1.5 sm:px-4 sm:py-2 bg-black/50 border border-cyan-500/30 rounded-full text-cyan-300 text-xs sm:text-sm hover:border-cyan-400 hover:shadow-[0_0_15px_rgba(34,211,238,0.4)] transition-all duration-300 cursor-default"
-                            >
-                                {feature}
-                            </span>
-                        ))}
-                    </div>
+      {/* ── Main Content ── */}
+      <div
+        style={{
+          position: "relative",
+          zIndex: 10,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          textAlign: "center",
+          padding: "0 1.5rem",
+          maxWidth: "1000px",
+          margin: "0 auto",
+        }}
+      >
+        {/* Badge */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+            padding: "6px 16px",
+            borderRadius: 999,
+            background: "rgba(6,182,212,0.1)",
+            border: "1px solid rgba(6,182,212,0.25)",
+            marginBottom: "2rem",
+          }}
+        >
+          <span style={{
+            width: 7, height: 7, borderRadius: "50%",
+            background: "#06B6D4",
+            boxShadow: "0 0 8px #06B6D4",
+            animation: "pulse-dot 2s ease-in-out infinite",
+            display: "inline-block",
+          }} />
+          <span style={{
+            fontFamily: "var(--font)",
+            fontSize: "0.72rem",
+            fontWeight: 600,
+            letterSpacing: "0.12em",
+            textTransform: "uppercase",
+            color: "#06B6D4",
+          }}>
+            Real-Time Chip Authentication
+          </span>
+        </motion.div>
 
-                    {/* CTA Buttons */}
-                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center pt-4">
-                        <button className="px-6 py-2.5 sm:px-8 sm:py-3 bg-cyan-500 hover:bg-cyan-400 text-black font-semibold rounded-full text-sm sm:text-base transition-all duration-300 hover:scale-105 hover:shadow-[0_0_30px_rgba(34,211,238,0.6)]">
-                            Start Scan Demo
-                        </button>
-                        <button className="px-6 py-2.5 sm:px-8 sm:py-3 bg-transparent border-2 border-cyan-500 hover:border-cyan-400 text-cyan-400 hover:text-cyan-300 font-semibold rounded-full text-sm sm:text-base transition-all duration-300 hover:shadow-[0_0_20px_rgba(34,211,238,0.3)]">
-                            Meet the Hardware
-                        </button>
-                    </div>
-                </div>
+        {/* Heading — word by word */}
+        <motion.div
+          variants={container}
+          initial="hidden"
+          animate="show"
+          style={{ marginBottom: "1.5rem", overflow: "hidden" }}
+        >
+          <div style={{
+            fontFamily: "var(--font)",
+            fontWeight: 900,
+            fontSize: "clamp(2.8rem, 7vw, 5.5rem)",
+            letterSpacing: "-0.04em",
+            lineHeight: 1.0,
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "center",
+            gap: "0 0.25em",
+          }}>
+            {["Authentichip"].map((word, i) => (
+              <motion.span
+                key={i}
+                variants={wordAnim}
+                style={{ display: "inline-block", overflow: "hidden" }}
+              >
+                <span className="grad-cyan" style={{ display: "block" }}>{word}</span>
+              </motion.span>
+            ))}
+          </div>
+          <div style={{
+            fontFamily: "var(--font)",
+            fontWeight: 800,
+            fontSize: "clamp(1.6rem, 4vw, 3.2rem)",
+            letterSpacing: "-0.03em",
+            lineHeight: 1.15,
+            color: "#F0F6FF",
+            marginTop: "0.4em",
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "center",
+            gap: "0 0.25em",
+          }}>
+            {["Trust", "Every", "IC", "You", "Touch."].map((word, i) => (
+              <motion.span
+                key={i}
+                variants={wordAnim}
+                style={{ display: "inline-block" }}
+              >
+                {word}
+              </motion.span>
+            ))}
+          </div>
+        </motion.div>
 
-                {/* Label */}
-                <div className="pointer-events-auto inline-block mt-8">
-                    <span className="text-cyan-400 text-xs sm:text-sm uppercase tracking-[0.3em] font-semibold">
-                        Real-Time Chip Authentication
-                    </span>
-                </div>
+        {/* Subtitle */}
+        <motion.p
+          variants={fadeUp}
+          initial="hidden"
+          animate="show"
+          style={{
+            fontFamily: "var(--font)",
+            fontSize: "clamp(0.95rem, 2vw, 1.15rem)",
+            fontWeight: 400,
+            color: "#6B7A99",
+            maxWidth: "560px",
+            lineHeight: 1.7,
+            marginBottom: "2rem",
+          }}
+        >
+          A dedicated inspection rig fused with AI that tells you—instantly—if your IC is genuine or counterfeit.
+        </motion.p>
 
-                {/* Scroll Cue */}
-                <div className="pointer-events-none absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center space-y-2 animate-bounce">
-                    <span className="text-gray-500 text-xs uppercase tracking-widest">
-                        Scroll to Explore Authentichip
-                    </span>
-                    <svg
-                        className="w-6 h-6 text-cyan-500"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M19 14l-7 7m0 0l-7-7m7 7V3"
-                        />
-                    </svg>
-                </div>
-            </div>
+        {/* Feature pills */}
+        <motion.div
+          variants={container}
+          initial="hidden"
+          animate="show"
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "center",
+            gap: "0.6rem",
+            marginBottom: "2.5rem",
+          }}
+        >
+          {features.map((f) => (
+            <motion.span
+              key={f}
+              variants={fadeUp}
+              style={{
+                padding: "6px 16px",
+                borderRadius: 999,
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(255,255,255,0.1)",
+                fontFamily: "var(--font)",
+                fontSize: "0.78rem",
+                fontWeight: 500,
+                color: "#B0BDD6",
+                cursor: "default",
+                transition: "border-color 0.2s, box-shadow 0.2s, color 0.2s",
+              }}
+              whileHover={{
+                borderColor: "rgba(6,182,212,0.4)",
+                boxShadow: "0 0 16px rgba(6,182,212,0.2)",
+                color: "#06B6D4",
+              }}
+            >
+              {f}
+            </motion.span>
+          ))}
+        </motion.div>
 
-            {/* Section Divider */}
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-linear-to-r from-transparent via-cyan-500/60 to-transparent"></div>
-        </section>
-    );
+        {/* CTAs */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.9, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          style={{ display: "flex", gap: "1rem", flexWrap: "wrap", justifyContent: "center" }}
+        >
+          {/* Primary */}
+          <motion.button
+            whileHover={{ scale: 1.04, boxShadow: "0 0 40px rgba(6,182,212,0.5)" }}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => document.querySelector("#scandemo")?.scrollIntoView({ behavior: "smooth" })}
+            className="btn-shimmer"
+            style={{
+              padding: "13px 32px",
+              borderRadius: 999,
+              background: "linear-gradient(135deg, #06B6D4, #8B5CF6)",
+              color: "#fff",
+              fontFamily: "var(--font)",
+              fontWeight: 700,
+              fontSize: "0.95rem",
+              letterSpacing: "-0.01em",
+              border: "none",
+              cursor: "pointer",
+              boxShadow: "0 0 30px rgba(6,182,212,0.35)",
+            }}
+          >
+            Start Scan Demo
+          </motion.button>
+
+          {/* Secondary */}
+          <motion.button
+            whileHover={{ scale: 1.04, borderColor: "rgba(6,182,212,0.7)", color: "#06B6D4" }}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => document.querySelector("#hardware")?.scrollIntoView({ behavior: "smooth" })}
+            style={{
+              padding: "13px 32px",
+              borderRadius: 999,
+              background: "rgba(255,255,255,0.04)",
+              color: "#B0BDD6",
+              fontFamily: "var(--font)",
+              fontWeight: 600,
+              fontSize: "0.95rem",
+              border: "1px solid rgba(255,255,255,0.15)",
+              cursor: "pointer",
+              transition: "all 0.25s ease",
+            }}
+          >
+            Meet the Hardware
+          </motion.button>
+        </motion.div>
+      </div>
+
+      {/* ── Scroll Indicator ── */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.5, duration: 0.6 }}
+        style={{
+          position: "absolute",
+          bottom: "2rem",
+          left: "50%",
+          transform: "translateX(-50%)",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: "0.5rem",
+          zIndex: 10,
+          pointerEvents: "none",
+        }}
+      >
+        <span style={{
+          fontFamily: "var(--font)",
+          fontSize: "0.65rem",
+          letterSpacing: "0.2em",
+          textTransform: "uppercase",
+          color: "#6B7A99",
+        }}>
+          Scroll to explore
+        </span>
+        <motion.div
+          animate={{ y: [0, 6, 0] }}
+          transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#06B6D4" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+          </svg>
+        </motion.div>
+      </motion.div>
+
+      {/* ── Bottom fade ── */}
+      <div style={{
+        position: "absolute", bottom: 0, left: 0, right: 0,
+        height: "160px",
+        background: "linear-gradient(to bottom, transparent, var(--bg-base))",
+        pointerEvents: "none", zIndex: 5,
+      }} />
+    </section>
+  );
 }
