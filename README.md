@@ -1,6 +1,5 @@
 # AuthentiChip
 
-![Authentichip Banner](https://via.placeholder.com/1200x400?text=Authentichip+3D+Platform)
 
 > **AI-Powered Automated Optical Inspection System for Counterfeit IC Detection**
 
