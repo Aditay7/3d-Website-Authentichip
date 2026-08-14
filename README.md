@@ -213,21 +213,4 @@ Counterfeit detection is not a single visual classification problem. A model tha
 5. **Automated conveyor integration:** Integrate the camera station directly into manufacturing lines.
 6. **Digital inspection certificates:** Generate digitally traceable inspection records for every IC.
 
-## Team
-
-**HackFit Fam:**
-- Pratyush Sarkar
-- Aditay A.
-- Piyush Soni
-- Kumkum Jangid
-- Karan Shrivastava
-
-**Mentors:**
-- Tushar Soni
-- Anil Kumar
-
-*Developed for the Smart India Hackathon 2025 Grand Finale.*
-
 ---
-
-**Keywords:** Automated Optical Inspection, AOI, Counterfeit IC Detection, Computer Vision, Machine Learning, HOG, SVM, OCR, MiniCPM-V, Homography, FastAPI, MongoDB, Edge AI, Electronics Manufacturing, React Three Fiber, Three.js
