@@ -122,38 +122,66 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile menu */}
+      {/* Mobile menu - Full Screen */}
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
             style={{
-              overflow: "hidden",
-              background: "rgba(5,10,20,0.97)",
-              borderBottom: "1px solid rgba(6,182,212,0.12)",
+              position: "fixed",
+              top: 64, left: 0, right: 0, bottom: 0,
+              background: "rgba(5,10,20,0.98)",
+              backdropFilter: "blur(24px)",
+              WebkitBackdropFilter: "blur(24px)",
+              display: "flex", flexDirection: "column",
+              alignItems: "center", justifyContent: "center",
+              zIndex: 190,
             }}
           >
-            <div style={{ padding: "1rem 2rem 1.5rem" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "2rem", alignItems: "center" }}>
               {NAV_LINKS.map((l, i) => (
                 <motion.a
                   key={l.href}
                   href={l.href}
                   onClick={(e) => scrollTo(e, l.href)}
-                  initial={{ x: -20, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  transition={{ delay: i * 0.05 }}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 + i * 0.05 }}
                   style={{
-                    display: "block", padding: "10px 12px",
-                    fontFamily: "var(--font)", fontWeight: 500,
-                    fontSize: "0.85rem", letterSpacing: "0.06em",
-                    textTransform: "uppercase", color: "#6B7A99",
-                    textDecoration: "none", borderRadius: 8,
+                    fontFamily: "var(--font-display)", fontWeight: 700,
+                    fontSize: "2rem", letterSpacing: "0.02em",
+                    textTransform: "uppercase", color: "#F0F6FF",
+                    textDecoration: "none", cursor: "pointer",
                   }}
-                >{l.label}</motion.a>
+                  whileHover={{ color: "#06B6D4", scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  {l.label}
+                </motion.a>
               ))}
+              
+              <motion.a
+                className="btn-shimmer"
+                href="#vision"
+                onClick={(e) => scrollTo(e, "#vision")}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 + NAV_LINKS.length * 0.05 }}
+                whileTap={{ scale: 0.97 }}
+                style={{
+                  marginTop: "2rem",
+                  padding: "16px 40px", borderRadius: 999,
+                  background: "linear-gradient(135deg, #06B6D4, #8B5CF6)",
+                  fontFamily: "var(--font)", fontWeight: 700, fontSize: "1.2rem",
+                  color: "#fff", textDecoration: "none",
+                  boxShadow: "0 0 30px rgba(6,182,212,0.4)",
+                }}
+              >
+                Explore Vision
+              </motion.a>
             </div>
           </motion.div>
         )}

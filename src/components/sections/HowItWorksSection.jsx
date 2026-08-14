@@ -14,7 +14,7 @@ export default function HowItWorksSection() {
   const [active, setActive] = useState(0);
 
   return (
-    <section id="howitworks" ref={ref} style={{ position: "relative", zIndex: 10, padding: "10rem 4vw" }}>
+    <section id="howitworks" ref={ref} className="section-pad" style={{ position: "relative", zIndex: 10 }}>
       <div style={{ maxWidth: 1400, margin: "0 auto", position: "relative" }}>
         
         {/* Header */}

@@ -13,7 +13,7 @@ export default function TechSection() {
   const inView = useInView(ref, { once: true, margin: "-100px" });
 
   return (
-    <section id="tech" ref={ref} style={{ position: "relative", zIndex: 10, padding: "10rem 4vw", paddingBottom: "12rem" }}>
+    <section id="tech" ref={ref} className="section-pad" style={{ position: "relative", zIndex: 10 }}>
       
       {/* Background Glow */}
       <div style={{

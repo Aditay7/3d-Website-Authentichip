@@ -20,7 +20,7 @@ export default function ProblemSection() {
   const y2 = useTransform(scrollYProgress, [0, 1], [100, -100]);
 
   return (
-    <section id="problem" ref={containerRef} style={{ position: "relative", zIndex: 10, padding: "12rem 4vw", paddingBottom: "8rem" }}>
+    <section id="problem" ref={containerRef} className="section-pad" style={{ position: "relative", zIndex: 10 }}>
       
       {/* Background Glow */}
       <div style={{

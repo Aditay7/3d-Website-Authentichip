@@ -29,7 +29,7 @@ export default function SolutionSection() {
   const inView = useInView(ref, { once: true, margin: "-80px" });
 
   return (
-    <section id="solution" ref={ref} style={{ position: "relative", zIndex: 10, padding: "10rem 4vw" }}>
+    <section id="solution" ref={ref} className="section-pad" style={{ position: "relative", zIndex: 10 }}>
       
       {/* Ambient background glow */}
       <div style={{

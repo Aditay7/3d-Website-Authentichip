@@ -6,7 +6,7 @@ export default function VisionSection() {
   const inView = useInView(ref, { once: true, margin: "-100px" });
 
   return (
-    <section id="vision" ref={ref} style={{ position: "relative", zIndex: 10, padding: "8rem 4vw", paddingBottom: "12rem" }}>
+    <section id="vision" ref={ref} className="section-pad" style={{ position: "relative", zIndex: 10 }}>
       <div style={{ maxWidth: 1000, margin: "0 auto", textAlign: "center" }}>
         
         <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={inView ? { opacity: 1, scale: 1 } : {}} transition={{ duration: 1 }} className="glass-xl" style={{ padding: "5rem 2rem", position: "relative", overflow: "hidden" }}>

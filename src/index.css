@@ -194,3 +194,32 @@ html.lenis, html.lenis body { height: auto; }
 .counter-num {
   font-variant-numeric: tabular-nums;
 }
+
+/* ── Responsive Utilities ──────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .section-pad {
+    padding: 8rem 4vw;
+  }
+}
+
+@media (max-width: 768px) {
+  .glass, .glass-xl {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  
+  .section-pad {
+    padding: 6rem 5vw;
+  }
+}
+
+@media (max-width: 480px) {
+  .glass, .glass-xl {
+    border-radius: var(--radius-sm);
+  }
+  
+  .section-pad {
+    padding: 4rem 5vw;
+  }
+}
+
