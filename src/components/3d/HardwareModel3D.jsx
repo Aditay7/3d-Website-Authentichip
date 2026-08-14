@@ -2,6 +2,8 @@ import { useState, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
+import { EffectComposer, Bloom, ChromaticAberration, Vignette, Noise } from '@react-three/postprocessing';
+import { BlendFunction } from 'postprocessing';
 import Scene3D from './scene/Scene3D';
 
 /**
@@ -33,6 +35,14 @@ export default function HardwareModel3D({ scrollProgress }) {
                     </mesh>
                 }>
                     <Scene3D scrollProgress={scrollProgress} isHovering={isHovering} />
+                    
+                    {/* Cinematic Post-Processing */}
+                    <EffectComposer multisampling={0}>
+                        <Bloom 
+                            luminanceThreshold={0.6} 
+                            intensity={0.8} 
+                        />
+                    </EffectComposer>
                 </Suspense>
 
                 <OrbitControls

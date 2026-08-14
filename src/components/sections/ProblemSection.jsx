@@ -1,224 +1,100 @@
 import { useRef } from "react";
-import { motion, useInView } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 
-const stats = [
-  {
-    number: "$75B",
-    label: "Annual counterfeit electronics market globally",
-    icon: "💸",
-    color: "#F59E0B",
-    glow: "rgba(245,158,11,0.2)",
-  },
-  {
-    number: "15%",
-    label: "Of all ICs in global supply chains are estimated to be counterfeit",
-    icon: "⚠️",
-    color: "#EF4444",
-    glow: "rgba(239,68,68,0.2)",
-  },
-  {
-    number: "1 in 3",
-    label: "Electronics companies have unknowingly installed counterfeit parts",
-    icon: "🔴",
-    color: "#F43F5E",
-    glow: "rgba(244,63,94,0.2)",
-  },
-  {
-    number: "0",
-    label: "Reliable, affordable, real-time authentication solutions available today",
-    icon: "🚫",
-    color: "#8B5CF6",
-    glow: "rgba(139,92,246,0.2)",
-  },
-];
-
-const incidents = [
-  {
-    domain: "🛡️ Defense",
-    text: "Counterfeit microchips in military equipment pose critical failure risks during operations.",
-  },
-  {
-    domain: "🚗 Automotive",
-    text: "Fake ICs in braking and airbag systems have been linked to fatal vehicle failures.",
-  },
-  {
-    domain: "✈️ Aerospace",
-    text: "Aviation electronics with counterfeit parts have caused navigation system malfunctions.",
-  },
-  {
-    domain: "🏥 Medical",
-    text: "Counterfeit semiconductors in medical devices risk patient safety and regulatory compliance.",
-  },
+const sectors = [
+  { id: "defense", title: "Defense & Aerospace", val: "Critical", desc: "Counterfeit parts in avionics and weapon systems risk national security and lives.", color: "#06B6D4" },
+  { id: "auto", title: "Automotive", val: "Safety", desc: "Fake ICs in braking and steering control units lead to catastrophic failures.", color: "#F59E0B" },
+  { id: "medical", title: "Medical Devices", val: "Fatal", desc: "Unverified components in pacemakers and life-support machines.", color: "#F43F5E" },
+  { id: "consumer", title: "Consumer Tech", val: "Scale", desc: "Mass-market electronics suffer from battery explosions and data breaches.", color: "#8B5CF6" },
 ];
 
 export default function ProblemSection() {
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: "-100px" });
+  const containerRef = useRef(null);
+  
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start end", "end start"]
+  });
+
+  const y1 = useTransform(scrollYProgress, [0, 1], [50, -50]);
+  const y2 = useTransform(scrollYProgress, [0, 1], [100, -100]);
 
   return (
-    <section
-      id="problem"
-      ref={ref}
-      style={{
-        position: "relative", zIndex: 10,
-        padding: "7rem 2rem",
-        scrollMarginTop: 64,
-      }}
-    >
-      {/* Red/amber tint background */}
+    <section id="problem" ref={containerRef} style={{ position: "relative", zIndex: 10, padding: "12rem 4vw", paddingBottom: "8rem" }}>
+      
+      {/* Background Glow */}
       <div style={{
-        position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
-        background: "linear-gradient(180deg, transparent 0%, rgba(239,68,68,0.04) 40%, rgba(245,158,11,0.03) 70%, transparent 100%)",
-        pointerEvents: "none",
-      }} />
-      <div style={{
-        position: "absolute", top: "20%", right: "5%",
-        width: 480, height: 480,
-        background: "radial-gradient(ellipse, rgba(239,68,68,0.08), transparent 70%)",
-        pointerEvents: "none",
+        position: "absolute", top: "20%", left: "50%", transform: "translate(-50%, -50%)",
+        width: "80vw", height: "80vw", maxWidth: 1000, maxHeight: 1000,
+        background: "radial-gradient(circle, rgba(244,63,94,0.05) 0%, transparent 60%)",
+        pointerEvents: "none", zIndex: -1
       }} />
 
-      <div style={{ maxWidth: 1200, margin: "0 auto", position: "relative", zIndex: 1 }}>
-
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          style={{ marginBottom: "4rem" }}
-        >
-          <div style={{
-            display: "inline-flex", alignItems: "center", gap: 7,
-            padding: "5px 14px", borderRadius: 999, marginBottom: "1.2rem",
-            background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.28)",
-          }}>
-            <span style={{ fontFamily: "var(--font)", fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#F43F5E" }}>
+      <div style={{ maxWidth: 1400, margin: "0 auto", position: "relative" }}>
+        
+        {/* Header Asymmetric */}
+        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-end", gap: "2rem", marginBottom: "6rem" }}>
+          <motion.div style={{ y: y1, maxWidth: 700 }}>
+            <div className="section-badge" style={{ marginBottom: "2rem" }}>
+              <div style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--rose)", boxShadow: "0 0 10px var(--rose)" }} />
               The Problem
-            </span>
-          </div>
-          <h2 style={{
-            fontFamily: "var(--font)", fontWeight: 900,
-            fontSize: "clamp(2.2rem, 5vw, 4rem)",
-            letterSpacing: "-0.05em", lineHeight: 1.05,
-            marginBottom: "1.2rem",
-          }}>
-            <span style={{
-              background: "linear-gradient(135deg, #F0F6FF, #B0BDD6)",
-              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text",
-              display: "block",
-            }}>The Counterfeit</span>
-            <span style={{
-              background: "linear-gradient(135deg, #EF4444, #F59E0B)",
-              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text",
-              display: "block",
-            }}>IC Crisis.</span>
-          </h2>
-          <p style={{
-            fontFamily: "var(--font)", fontSize: "1rem", lineHeight: 1.75, color: "#6B7A99", maxWidth: 560,
-          }}>
-            Counterfeit integrated circuits are a silent epidemic infiltrating every layer of the global electronics supply chain — from consumer gadgets to life-critical systems.
-          </p>
-        </motion.div>
+            </div>
+            <h2 style={{
+              fontFamily: "var(--font-display)", fontSize: "clamp(3.5rem, 8vw, 6rem)", fontWeight: 800,
+              lineHeight: 1, letterSpacing: "-0.04em", color: "#fff"
+            }}>
+              The <span className="grad-warm">Counterfeit</span><br/>Crisis.
+            </h2>
+          </motion.div>
+          <motion.p style={{ y: y2, fontFamily: "var(--font-body)", fontSize: "1.2rem", color: "var(--muted)", maxWidth: 400, lineHeight: 1.6 }}>
+            Fake integrated circuits are a silent epidemic infiltrating every layer of the global electronics supply chain — causing billions in damages and putting lives at risk.
+          </motion.p>
+        </div>
 
-        {/* Stats grid */}
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-          gap: "1.25rem",
-          marginBottom: "4rem",
-        }}>
-          {stats.map((s, i) => (
-            <motion.div
-              key={s.number}
-              initial={{ opacity: 0, y: 40 }}
-              animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{ delay: 0.15 + i * 0.12, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-              whileHover={{ y: -4, boxShadow: `0 20px 60px ${s.glow}` }}
-              className="glass"
-              style={{
-                padding: "2rem 1.75rem",
-                borderColor: `${s.color}25`,
-                position: "relative",
-                overflow: "hidden",
-                cursor: "default",
-              }}
+        {/* Big Stats Bento */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "1.5rem", marginBottom: "4rem" }}>
+          
+          <motion.div className="glass-xl" style={{ padding: "3rem", position: "relative", overflow: "hidden" }} whileHover={{ y: -5 }}>
+            <div style={{ position: "absolute", top: 0, right: 0, width: 200, height: 200, background: "radial-gradient(circle at top right, rgba(245,158,11,0.1), transparent)", pointerEvents: "none" }} />
+            <div style={{ fontSize: "2rem", marginBottom: "1.5rem" }}>💸</div>
+            <div style={{ fontFamily: "var(--font-display)", fontSize: "4.5rem", fontWeight: 800, color: "var(--amber)", lineHeight: 1, marginBottom: "1rem" }}>$75B</div>
+            <div style={{ fontFamily: "var(--font-body)", color: "rgba(255,255,255,0.7)", fontSize: "1rem", lineHeight: 1.6 }}>Annual global losses attributed to counterfeit electronics and IP theft.</div>
+          </motion.div>
+
+          <motion.div className="glass-xl" style={{ padding: "3rem", position: "relative", overflow: "hidden" }} whileHover={{ y: -5 }}>
+            <div style={{ position: "absolute", top: 0, right: 0, width: 200, height: 200, background: "radial-gradient(circle at top right, rgba(244,63,94,0.1), transparent)", pointerEvents: "none" }} />
+            <div style={{ fontSize: "2rem", marginBottom: "1.5rem" }}>⚠️</div>
+            <div style={{ fontFamily: "var(--font-display)", fontSize: "4.5rem", fontWeight: 800, color: "var(--rose)", lineHeight: 1, marginBottom: "1rem" }}>15%</div>
+            <div style={{ fontFamily: "var(--font-body)", color: "rgba(255,255,255,0.7)", fontSize: "1rem", lineHeight: 1.6 }}>Of all replacement parts purchased by the Pentagon were estimated to be counterfeit.</div>
+          </motion.div>
+
+          <motion.div className="glass-xl" style={{ padding: "3rem", position: "relative", overflow: "hidden" }} whileHover={{ y: -5 }}>
+            <div style={{ position: "absolute", top: 0, right: 0, width: 200, height: 200, background: "radial-gradient(circle at top right, rgba(6,182,212,0.1), transparent)", pointerEvents: "none" }} />
+            <div style={{ fontSize: "2rem", marginBottom: "1.5rem" }}>📉</div>
+            <div style={{ fontFamily: "var(--font-display)", fontSize: "4.5rem", fontWeight: 800, color: "var(--text)", lineHeight: 1, marginBottom: "1rem" }}>1 in 3</div>
+            <div style={{ fontFamily: "var(--font-body)", color: "rgba(255,255,255,0.7)", fontSize: "1rem", lineHeight: 1.6 }}>Electronics companies have unknowingly installed counterfeit parts in their products.</div>
+          </motion.div>
+
+        </div>
+
+        {/* Sectors Grid */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "1rem" }}>
+          {sectors.map((s, i) => (
+            <motion.div 
+              key={s.id} 
+              className="glass" 
+              style={{ padding: "2rem", borderTop: `2px solid ${s.color}40` }}
+              whileHover={{ y: -4, backgroundColor: "rgba(255,255,255,0.05)" }}
             >
-              {/* Corner glow */}
-              <div style={{
-                position: "absolute", top: 0, right: 0,
-                width: 100, height: 100,
-                background: `radial-gradient(circle at top right, ${s.glow}, transparent 70%)`,
-                pointerEvents: "none",
-              }} />
-              <div style={{ fontSize: "1.6rem", marginBottom: "0.9rem" }}>{s.icon}</div>
-              <div style={{
-                fontFamily: "var(--font)", fontWeight: 900,
-                fontSize: "clamp(2rem, 4vw, 2.8rem)",
-                letterSpacing: "-0.05em",
-                color: s.color,
-                textShadow: `0 0 30px ${s.color}60`,
-                marginBottom: "0.6rem",
-              }}>{s.number}</div>
-              <p style={{
-                fontFamily: "var(--font)", fontSize: "0.82rem",
-                lineHeight: 1.6, color: "#6B7A99",
-              }}>{s.label}</p>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+                <h4 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "1.2rem", color: "#fff" }}>{s.title}</h4>
+                <span style={{ fontFamily: "var(--font-display)", fontSize: "0.7rem", fontWeight: 700, color: s.color, textTransform: "uppercase", letterSpacing: "0.1em", padding: "4px 10px", borderRadius: 999, background: `${s.color}15` }}>{s.val}</span>
+              </div>
+              <p style={{ fontFamily: "var(--font-body)", fontSize: "0.9rem", color: "var(--muted)", lineHeight: 1.6 }}>{s.desc}</p>
             </motion.div>
           ))}
         </div>
-
-        {/* Incident bento */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ delay: 0.55, duration: 0.7 }}
-        >
-          <div style={{
-            fontFamily: "var(--font)", fontSize: "0.72rem", fontWeight: 600,
-            letterSpacing: "0.12em", textTransform: "uppercase",
-            color: "#6B7A99", marginBottom: "1.2rem",
-          }}>
-            Affected Sectors
-          </div>
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-            gap: "1rem",
-          }}>
-            {incidents.map((inc, i) => (
-              <motion.div
-                key={inc.domain}
-                initial={{ opacity: 0, x: -20 }}
-                animate={inView ? { opacity: 1, x: 0 } : {}}
-                transition={{ delay: 0.65 + i * 0.08 }}
-                style={{
-                  padding: "1.25rem 1.5rem",
-                  borderRadius: 12,
-                  background: "rgba(255,255,255,0.02)",
-                  border: "1px solid rgba(255,255,255,0.06)",
-                  display: "flex", flexDirection: "column", gap: "0.5rem",
-                }}
-              >
-                <div style={{
-                  fontFamily: "var(--font)", fontWeight: 700,
-                  fontSize: "0.85rem", color: "#F0F6FF",
-                }}>{inc.domain}</div>
-                <p style={{
-                  fontFamily: "var(--font)", fontSize: "0.78rem",
-                  lineHeight: 1.65, color: "#6B7A99",
-                }}>{inc.text}</p>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
       </div>
-
-      {/* Bottom divider */}
-      <div style={{
-        position: "absolute", bottom: 0, left: 0, right: 0, height: 1,
-        background: "linear-gradient(90deg, transparent, rgba(239,68,68,0.3), transparent)",
-        pointerEvents: "none",
-      }} />
     </section>
   );
 }

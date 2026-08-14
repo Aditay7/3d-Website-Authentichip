@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700;800&display=swap');
 @import "tailwindcss";
 
 /* ── Design Tokens ─────────────────────────────────────────────── */
@@ -19,10 +19,13 @@
   --muted:      #6B7A99;
   --border:     rgba(255,255,255,0.07);
 
-  --font: 'Inter', system-ui, -apple-system, sans-serif;
-  --radius: 16px;
-  --radius-sm: 10px;
-  --radius-xl: 28px;
+  --font-body: 'Outfit', system-ui, -apple-system, sans-serif;
+  --font-display: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+  --font: var(--font-body); /* For fallback where var(--font) is used */
+
+  --radius: 20px;
+  --radius-sm: 12px;
+  --radius-xl: 32px;
 }
 
 /* ── Reset & Base ──────────────────────────────────────────────── */
@@ -34,13 +37,23 @@ html {
 }
 
 body {
-  font-family: var(--font);
+  font-family: var(--font-body);
   background: var(--bg);
   color: var(--text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
   min-height: 100vh;
+}
+
+/* ── Global Noise Overlay ──────────────────────────────────────── */
+.noise-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+  opacity: 1;
 }
 
 /* ── Scrollbar ─────────────────────────────────────────────────── */
@@ -60,21 +73,27 @@ body {
   -webkit-mask-image: radial-gradient(ellipse 90% 90% at 50% 50%, black 30%, transparent 100%);
 }
 
-/* ── Glass ─────────────────────────────────────────────────────── */
+/* ── Glassmorphism 2.0 ─────────────────────────────────────────── */
 .glass {
-  background: var(--bg-card);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--border);
+  background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-top-color: rgba(255,255,255,0.12); /* Delicate top lighting */
+  border-left-color: rgba(255,255,255,0.08);
   border-radius: var(--radius);
+  box-shadow: 0 10px 40px -10px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.4s, border-color 0.4s;
 }
 
 .glass-xl {
-  background: rgba(8, 15, 31, 0.85);
-  backdrop-filter: blur(32px);
-  -webkit-backdrop-filter: blur(32px);
-  border: 1px solid rgba(6,182,212,0.12);
+  background: linear-gradient(135deg, rgba(8,15,31,0.5), rgba(8,15,31,0.2));
+  backdrop-filter: blur(60px);
+  -webkit-backdrop-filter: blur(60px);
+  border: 1px solid rgba(6,182,212,0.1);
+  border-top-color: rgba(6,182,212,0.2);
   border-radius: var(--radius-xl);
+  box-shadow: 0 30px 60px -20px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.05);
 }
 
 /* ── Gradient text ─────────────────────────────────────────────── */
@@ -97,9 +116,12 @@ body {
 /* ── Section Label Badge ───────────────────────────────────────── */
 .section-badge {
   display: inline-flex; align-items: center; gap: 6px;
-  padding: 5px 14px; border-radius: 999px;
-  font-family: var(--font); font-size: 0.68rem;
-  font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 6px 16px; border-radius: 999px;
+  font-family: var(--font-display); font-size: 0.72rem;
+  font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
 }
 
 /* ── Shimmer button ────────────────────────────────────────────── */
@@ -147,7 +169,7 @@ html.lenis, html.lenis body { height: auto; }
 
 /* ── Tailwind ──────────────────────────────────────────────────── */
 @layer base {
-  h1,h2,h3,h4 { font-family: var(--font); letter-spacing: -0.03em; line-height: 1.1; }
+  h1,h2,h3,h4,h5,h6 { font-family: var(--font-display); letter-spacing: -0.04em; line-height: 1.1; }
 }
 @layer utilities {
   .bg-gradient-radial { background-image: radial-gradient(var(--tw-gradient-stops)); }
